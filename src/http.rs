@@ -38,7 +38,7 @@ impl HttpClient {
 impl Client for HttpClient {
 
     fn send(&self, write_key: &str, msg: &Message) -> Result<(), Error> {
-        println!("Printing debug info: step-2");
+        // println!("Printing debug info: step-2");
 
         // println!("Printing debug info...{:?}",msg);
         let path = match msg {

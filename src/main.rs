@@ -6,7 +6,7 @@ use failure::Error;
 use std::io;
 
 fn main() -> Result<(), Error> {
-    println!("Printing debug info: step-1");
+    // println!("Printing debug info: step-1");
 
     let matches = App::new("Rudderanalytics")
         .version("0.1")
@@ -51,7 +51,7 @@ fn main() -> Result<(), Error> {
         Some(_) => panic!("unknown message type"),
         None => panic!("subcommand is required"),
     };
-    println!("Printing debug info: step-1 {}",message);
+    // println!("Printing debug info: step-1 {}",message);
 
     client.send(matches.value_of("write-key").unwrap(), &message)?;
     Ok(())

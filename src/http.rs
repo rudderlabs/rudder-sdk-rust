@@ -40,7 +40,6 @@ impl Client for HttpClient {
     fn send(&self, write_key: &str, msg: &Message) -> Result<(), Error> {
         // println!("Printing debug info: step-2");
 
-        // println!("Printing debug info...{:?}",msg);
         let path = match msg {
             Message::Identify(_) => "/v1/identify",
             Message::Track(_) => "/v1/track",
@@ -50,6 +49,8 @@ impl Client for HttpClient {
             Message::Alias(_) => "/v1/alias",
             Message::Batch(_) => "/v1/batch",
         };
+
+        println!("Printing debug info...{:#?}",msg);
 
         self.client
             .post(&format!("{}{}", self.host, path))

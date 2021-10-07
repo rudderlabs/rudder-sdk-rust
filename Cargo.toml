@@ -7,7 +7,7 @@ readme = "README.md"
 [[bin]]
 name = "rudderanalytics"
 path = "src/main.rs"
-#required-features = ["cli"]
+required-features = ["cli"]
 
 [dependencies]
 failure = "0.1.5"

@@ -50,8 +50,6 @@ impl Client for HttpClient {
             Message::Batch(_) => "/v1/batch",
         };
 
-        println!("Printing debug info...{:#?}",msg);
-
         self.client
             .post(&format!("{}{}", self.host, path))
             .basic_auth(write_key, Some(""))

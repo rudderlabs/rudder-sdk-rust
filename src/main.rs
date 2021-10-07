@@ -1,9 +1,7 @@
-use rudderanalytics::client::Client;
-use rudderanalytics::http::HttpClient;
-use rudderanalytics::message::Message;
+use rudderanalytics::methods::Methods;
+use rudderanalytics::rudder::Rudderelement;
 /// use clap::{App, AppSettings, Arg, SubCommand};
 use failure::Error;
-use std::io;
 
 
 
@@ -39,20 +37,24 @@ fn main() -> Result<(), Error>{
     let write_key = String::from("WRITE-KEY");
     let data_plane_url = String::from("DATA-PLANE-URL");
     
-    let client = HttpClient::new(
-    reqwest::Client::new(),
-    data_plane_url
-    );
+    let rudderanalytics = Rudderelement::load(write_key,data_plane_url);
+    let msg = rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()};
+    rudderanalytics.identify(&msg)
+
+    // let client = HttpClient::new(
+    // reqwest::Client::new(),
+    // data_plane_url
+    // );
     
-    let _identify = |_msg:rudderanalytics::message::Identify| -> Result<(), Error>{
-        let message = Message::Identify(_msg);        
-        client.send(&write_key, &message)?;
-        Ok(())
-    };
+    // let _identify = |_msg:rudderanalytics::message::Identify| -> Result<(), Error>{
+    //     let message = Message::Identify(_msg);        
+    //     client.send(&write_key, &message)?;
+    //     Ok(())
+    // };
 
     
     
-    _identify(rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()})
+    // _identify(rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()})
 
     // let message = match api_type {
     //     Some("identify") => Message::Identify(rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()}),

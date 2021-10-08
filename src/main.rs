@@ -1,7 +1,5 @@
 use rudderanalytics::methods::Methods;
-use rudderanalytics::rudder::Rudderelement;
-use rudderanalytics::client::Client;
-use rudderanalytics::http::HttpClient;
+use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::message::Message;
 use clap::{App, AppSettings, Arg, SubCommand};
 use failure::Error;
@@ -11,7 +9,7 @@ fn main() -> Result<(), Error>{
 
     let matches = App::new("Rudderanalytics")
         .version("0.1")
-        .about("Sends analytics events to Rudderstack")
+        .about("Sends analytics events to RudderStack")
         .setting(AppSettings::ColoredHelp)
         .arg(
             Arg::with_name("write-key")
@@ -42,7 +40,7 @@ fn main() -> Result<(), Error>{
     println!("write-key: {}", write_key);
     println!("data-plane-url: {}", data_plane_url);
     
-    let rudderanalytics = Rudderelement::load(write_key,data_plane_url);
+    let rudderanalytics = RudderAnalytics::load(write_key,data_plane_url);
     let msg = rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()};
     rudderanalytics.identify(&msg)
 

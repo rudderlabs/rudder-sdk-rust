@@ -8,49 +8,48 @@ use serde_json::{Value};
 const MAX_MESSAGE_SIZE: usize = 1024 * 32;
 const MAX_BATCH_SIZE: usize = 1024 * 512;
 
-/// A batcher can accept messages into an internal buffer, and report when
-/// messages must be flushed.
-///
-/// The recommended usage pattern looks something like this:
-///
+// / A batcher can accept messages into an internal buffer, and report when
+// / messages must be flushed.
+// /
+// / The recommended usage pattern looks something like this:
+// /
+// / ```
+// / use rudderanalytics::batcher::Batcher;
+// / use rudderanalytics::client::RudderAnalytics;
+// / use rudderanalytics::message::{BatchMessage, Track};
+// / use serde_json::json;
+// /
+// / let mut batcher = Batcher::new(None);
+// / let rudderAnalytics = RudderAnalytics::load("WRITE-KEY","DATA-PLANE-URL");
+// /
+// / for i in 0..100 {
+// /     let msg = BatchMessage::Track(Track {
+// /         user_id: Some(format!("user-{}", i)),
+// /         event: "Example".to_owned(),
+// /         properties: Some(json!({ "foo": "bar" })),
+// /         ..Default::default()
+// /     });
+// /
+// /     // Batcher returns back ownership of a message if the internal buffer
+// /     // would overflow.
+// /     //
+// /     // When this occurs, we flush the batcher, create a new batcher, and add
+// /     // the message into the new batcher.
+// /     if let Some(msg) = batcher.push(msg).unwrap() {
+// /         rudderAnalytics.send(&batcher.into_message()).unwrap();
+// /         batcher = Batcher::new(None);
+// /         batcher.push(msg).unwrap();
+// /     }
+// / }
 /// ```
-/// use rudderanalytics::batcher::Batcher;
-/// use rudderanalytics::client::Client;
-/// use rudderanalytics::http::HttpClient;
-/// use rudderanalytics::message::{BatchMessage, Track};
-/// use serde_json::json;
 ///
-/// let mut batcher = Batcher::new(None);
-/// let client = HttpClient::default();
-///
-/// for i in 0..100 {
-///     let msg = BatchMessage::Track(Track {
-///         user_id: Some(format!("user-{}", i)),
-///         event: "Example".to_owned(),
-///         properties: Some(json!({ "foo": "bar" })),
-///         ..Default::default()
-///     });
-///
-///     // Batcher returns back ownership of a message if the internal buffer
-///     // would overflow.
-///     //
-///     // When this occurs, we flush the batcher, create a new batcher, and add
-///     // the message into the new batcher.
-///     if let Some(msg) = batcher.push(msg).unwrap() {
-///         client.send("your_write_key", &batcher.into_message()).unwrap();
-///         batcher = Batcher::new(None);
-///         batcher.push(msg).unwrap();
-///     }
-/// }
-/// ```
-///
-/// Batcher will attempt to fit messages into maximally-sized batches, thus
-/// reducing the number of round trips required with RudderStack's tracking API.
-/// However, if you produce messages infrequently, this may significantly delay
-/// the sending of messages to RudderStack.
-///
-/// If this delay is a concern, it is recommended that you periodically flush
-/// the batcher on your own by calling `into_message`.
+// / Batcher will attempt to fit messages into maximally-sized batches, thus
+// / reducing the number of round trips required with RudderStack's tracking API.
+// / However, if you produce messages infrequently, this may significantly delay
+// / the sending of messages to RudderStack.
+// /
+// / If this delay is a concern, it is recommended that you periodically flush
+// / the batcher on your own by calling `into_message`.
 pub struct Batcher {
     buf: Vec<BatchMessage>,
     byte_count: usize,

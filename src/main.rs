@@ -44,19 +44,19 @@ fn main() -> Result<(), Error>{
     
     let rudderanalytics = RudderAnalytics::load(write_key,data_plane_url);
 
+    fn format()-> String{
+        let mut cmd_ln_inp = String::new();
+        io::stdin().read_line(&mut cmd_ln_inp).expect("Failed To read Input");
+        cmd_ln_inp.to_string()
+    }
+    
     let message = match matches.subcommand_name() {
-        Some("identify") => Message::Identify(rudderanalytics::message::Identify {user_id:Some("foo".to_string()),..Default::default()}),
-        Some("track") => {
-            let mut cmd_ln_inp = String::new();
-            io::stdin().read_line(&mut cmd_ln_inp).expect("Failed To read Input");
-            let clean_str = cmd_ln_inp.trim();
-            println!("Input JSON string: {}", clean_str);
-            Message::Track(serde_json::from_str(clean_str)?)
-        },
-        Some("page") => Message::Page(serde_json::from_reader(io::stdin())?),
-        Some("screen") => Message::Screen(serde_json::from_reader(io::stdin())?),
-        Some("group") => Message::Group(serde_json::from_reader(io::stdin())?),
-        Some("alias") => Message::Alias(serde_json::from_reader(io::stdin())?),
+        Some("identify") => Message::Identify(serde_json::from_str(&format())?),
+        Some("track") => Message::Track(serde_json::from_str(&format())?),
+        Some("page") => Message::Page(serde_json::from_str(&format())?),
+        Some("screen") => Message::Screen(serde_json::from_str(&format())?),
+        Some("group") => Message::Group(serde_json::from_str(&format())?),
+        Some("alias") => Message::Alias(serde_json::from_str(&format())?),
         Some(_) => panic!("unknown message type"),
         None => panic!("subcommand is required"),
     };

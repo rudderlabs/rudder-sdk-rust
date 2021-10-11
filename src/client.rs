@@ -32,7 +32,7 @@ impl RudderAnalytics {
             Message::Alias(_) => "/v1/alias",
             Message::Batch(_) => "/v1/batch",
         };
-        println!("cmd input {:#?}",msg);
+        
         self.client
             .post(&format!("{}{}", self.data_plane_url, path))
             .basic_auth(self.write_key.to_string(), Some(""))

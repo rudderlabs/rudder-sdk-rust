@@ -8,7 +8,7 @@ fn main() {
             user_id: Some("sample_user_id".to_string()),
                 traits: Some(json!({
                     "name": "Test User",
-                    "email": "testuser@gmail.com",
+                    "email": "test@user.com",
                 })),
                 ..Default::default()
             });

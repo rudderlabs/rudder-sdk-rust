@@ -2,8 +2,7 @@ use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::message::{Identify, Track, Page, Group, Screen, Alias, Batch, Message, BatchMessage};
 use serde_json::json;
 fn main() {
-    println!("Hello, world!");
-    let rudder_analytics = RudderAnalytics::load("YOUR_WRITE_KEY".to_string(), "DATA_PLANE_URL".to_string());
+    let rudder_analytics = RudderAnalytics::load("YOUR_WRITE_KEY".to_string(), "YOUR_DATA_PLANE_URL".to_string());
     let identify_msg = Message::Identify(Identify {
             user_id: Some("sample_user_id".to_string()),
                 traits: Some(json!({

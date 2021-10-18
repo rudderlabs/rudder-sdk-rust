@@ -1,4 +1,5 @@
 use crate::message::Message;
+use crate::errors::{Error as AnalyticsError};
 use failure::Error;
 use std::time::Duration;
 
@@ -15,7 +16,7 @@ impl RudderAnalytics {
             write_key,
             data_plane_url,
             client:reqwest::Client::builder()
-            .connect_timeout(Some(Duration::new(10, 0)))
+            .connect_timeout(Duration::new(10, 0))
             .build()
             .unwrap()
         }
@@ -33,12 +34,20 @@ impl RudderAnalytics {
             Message::Batch(_) => "/v1/batch",
         };
         
-        self.client
+        let res = self.client
             .post(&format!("{}{}", self.data_plane_url, path))
             .basic_auth(self.write_key.to_string(), Some(""))
             .json(&msg)
-            .send()?
-            .error_for_status()?;
-        Ok(())
+            .send()?;
+            // .error_for_status()?;
+
+        println!("Response: {:#?}",res);
+
+        if res.status() == 200{
+            return Ok(())
+        }else {
+            return  Err(AnalyticsError::InvalidRequest.into());
+        }
+        
     }
 }

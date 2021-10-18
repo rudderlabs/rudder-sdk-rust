@@ -3,9 +3,9 @@ use rudderanalytics::message::Message;
 use clap::{App, AppSettings, Arg, SubCommand};
 use failure::Error;
 use std::io;
+use log::{debug, error, info};
 
 fn main() -> Result<(), Error>{
-    println!("Printing debug info: step-1");
 
     let matches = App::new("Rudderanalytics")
         .version("0.1")
@@ -38,9 +38,9 @@ fn main() -> Result<(), Error>{
     let write_key = matches.value_of("write-key").unwrap().to_owned();
     let data_plane_url = matches.value_of("data-plane-url").unwrap().to_owned();
 
-    println!("Supplied CLI args:-");
-    println!("write-key: {}", write_key);
-    println!("data-plane-url: {}", data_plane_url);
+    debug!("Supplied CLI args:-");
+    debug!("write-key: {}", write_key);
+    debug!("data-plane-url: {}", data_plane_url);
     
     let rudderanalytics = RudderAnalytics::load(write_key,data_plane_url);
 
@@ -49,7 +49,7 @@ fn main() -> Result<(), Error>{
         io::stdin().read_line(&mut cmd_ln_inp).expect("Failed To read Input");
         cmd_ln_inp.to_string()
     }
-    
+
     let message = match matches.subcommand_name() {
         Some("identify") => Message::Identify(serde_json::from_str(&format())?),
         Some("track") => Message::Track(serde_json::from_str(&format())?),

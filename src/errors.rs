@@ -9,4 +9,7 @@ pub enum Error {
     /// The given message is too large to be sent to RudderStack's API.
     #[fail(display = "message too large")]
     MessageTooLarge,
+
+    #[fail(display = "Invalid request")]
+    InvalidRequest,
 }

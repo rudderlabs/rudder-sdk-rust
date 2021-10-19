@@ -1,11 +1,11 @@
 use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::message::Message;
 use clap::{App, AppSettings, Arg, SubCommand};
-// use failure::Error;
+use failure::Error;
 use std::io;
 use log::{debug};
 
-fn main() -> Result<(), Box<dyn std::error::Error>>{
+fn main() -> Result<(), Error>{
 
     let matches = App::new("Rudderanalytics")
         .version("0.1")

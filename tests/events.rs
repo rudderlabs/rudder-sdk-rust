@@ -163,7 +163,8 @@ mod tests {
         let err: &AnalyticsError = err.as_fail().downcast_ref().unwrap();
 
         match err {
-            AnalyticsError::MessageTooLarge => {}
+            AnalyticsError::MessageTooLarge(_str) => {}
+            AnalyticsError::InvalidRequest(_str) => {}
         }
     }
 

@@ -49,7 +49,7 @@ impl RudderAnalytics {
         if res.status() == 200{
             return Ok(())
         }else {
-            return  Err(AnalyticsError::InvalidRequest(String::from("status code: 400, message: Invalid request")).into());
+            return Err(AnalyticsError::InvalidRequest(String::from(format!("status code: {}, message: Invalid request", res.status()))).into());
         }
         
     }

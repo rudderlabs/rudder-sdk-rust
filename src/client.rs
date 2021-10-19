@@ -1,6 +1,6 @@
 use crate::message::Message;
-use crate::errors::{Error as AnalyticsError};
-use failure::Error;
+// use crate::errors::{Error as AnalyticsError};
+// use failure::Error;
 use std::time::Duration;
 
 pub struct RudderAnalytics{
@@ -8,6 +8,7 @@ pub struct RudderAnalytics{
     pub data_plane_url: String,
     pub client: reqwest::Client
 }
+
 
 
 impl RudderAnalytics {
@@ -22,7 +23,7 @@ impl RudderAnalytics {
         }
     } 
     
-    pub fn send(&self, msg:&Message)-> Result<(), Error>{
+    pub fn send(&self, msg:&Message)-> Result<(), Box<dyn std::error::Error>>{
 
         let path = match msg {
             Message::Identify(_) => "/v1/identify",
@@ -33,6 +34,7 @@ impl RudderAnalytics {
             Message::Alias(_) => "/v1/alias",
             Message::Batch(_) => "/v1/batch",
         };
+
         
         let res = self.client
             .post(&format!("{}{}", self.data_plane_url, path))
@@ -41,12 +43,12 @@ impl RudderAnalytics {
             .send()?;
             // .error_for_status()?;
 
-        println!("Response: {:#?}",res);
+        // println!("Response: {:#?}",res);
 
         if res.status() == 200{
             return Ok(())
         }else {
-            return  Err(AnalyticsError::InvalidRequest.into());
+            return  Err("status code: 400, message: 'Invalid request'".into());
         }
         
     }

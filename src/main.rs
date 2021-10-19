@@ -5,7 +5,7 @@ use failure::Error;
 use std::io;
 use log::{debug, error, info};
 
-fn main() -> Result<(), Error>{
+fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     let matches = App::new("Rudderanalytics")
         .version("0.1")

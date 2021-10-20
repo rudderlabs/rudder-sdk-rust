@@ -3,7 +3,7 @@
 use crate::errors::Error as AnalyticsError;
 use crate::message::{Batch, BatchMessage, Message};
 use failure::Error;
-use serde_json::{Value};
+use serde_json::Value;
 
 const MAX_MESSAGE_SIZE: usize = 1024 * 32;
 const MAX_BATCH_SIZE: usize = 1024 * 512;
@@ -84,7 +84,10 @@ impl Batcher {
     pub fn push(&mut self, msg: BatchMessage) -> Result<Option<BatchMessage>, Error> {
         let size = serde_json::to_vec(&msg)?.len();
         if size > MAX_MESSAGE_SIZE {
-            return Err(AnalyticsError::MessageTooLarge(String::from("status code: 400, message: Message too large")).into());
+            return Err(AnalyticsError::MessageTooLarge(String::from(
+                "status code: 400, message: Message too large",
+            ))
+            .into());
         }
 
         self.byte_count += size + 1; // +1 to account for Serialized data's extra commas
@@ -102,7 +105,7 @@ impl Batcher {
         Message::Batch(Batch {
             batch: self.buf,
             context: self.context,
-            integrations: None
+            integrations: None,
         })
     }
 }

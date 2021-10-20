@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value};
+use serde_json::Value;
 
 /// An enum containing all values which may be sent to RudderStack's API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -72,7 +72,6 @@ pub struct Track {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
-
 }
 
 /// A page event.
@@ -167,7 +166,6 @@ pub struct Group {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
-
 }
 
 /// An alias event.
@@ -196,7 +194,6 @@ pub struct Alias {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
-
 }
 
 /// A batch of events.
@@ -212,7 +209,6 @@ pub struct Batch {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
-
 }
 
 /// An enum containing all messages which may be placed inside a batch.
@@ -232,4 +228,3 @@ pub enum BatchMessage {
     #[serde(rename = "alias")]
     Alias(Alias),
 }
-

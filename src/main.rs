@@ -1,12 +1,11 @@
-use rudderanalytics::client::RudderAnalytics;
-use rudderanalytics::message::Message;
 use clap::{App, AppSettings, Arg, SubCommand};
 use failure::Error;
+use log::debug;
+use rudderanalytics::client::RudderAnalytics;
+use rudderanalytics::message::Message;
 use std::io;
-use log::{debug};
 
-fn main() -> Result<(), Error>{
-
+fn main() -> Result<(), Error> {
     let matches = App::new("Rudderanalytics")
         .version("0.1")
         .about("Sends analytics events to RudderStack")
@@ -41,12 +40,14 @@ fn main() -> Result<(), Error>{
     debug!("Supplied CLI args:-");
     debug!("write-key: {}", write_key);
     debug!("data-plane-url: {}", data_plane_url);
-    
-    let rudderanalytics = RudderAnalytics::load(write_key,data_plane_url);
 
-    fn format()-> String{
+    let rudderanalytics = RudderAnalytics::load(write_key, data_plane_url);
+
+    fn format() -> String {
         let mut cmd_ln_inp = String::new();
-        io::stdin().read_line(&mut cmd_ln_inp).expect("Failed To read Input");
+        io::stdin()
+            .read_line(&mut cmd_ln_inp)
+            .expect("Failed To read Input");
         cmd_ln_inp.to_string()
     }
 

@@ -1,6 +1,8 @@
-use rudderanalytics::message::{Identify, Track, Page, Group, Screen, Alias, Batch, Message, BatchMessage};
 use rudderanalytics::batcher::Batcher;
 use rudderanalytics::errors::Error as AnalyticsError;
+use rudderanalytics::message::{
+    Alias, Batch, BatchMessage, Group, Identify, Message, Page, Screen, Track,
+};
 // / To test all the cases run the command `cargo test --all`
 #[cfg(test)]
 mod tests {
@@ -48,8 +50,7 @@ mod tests {
                 ..Default::default()
             }))
             .unwrap(),
-            r#"{"userId":"foo","name":"Foo","properties":{"baz":"quux","foo":"bar"}}"#
-                .to_owned(),
+            r#"{"userId":"foo","name":"Foo","properties":{"baz":"quux","foo":"bar"}}"#.to_owned(),
         );
 
         assert_eq!(
@@ -63,8 +64,7 @@ mod tests {
                 ..Default::default()
             }))
             .unwrap(),
-            r#"{"userId":"foo","name":"Foo","properties":{"baz":"quux","foo":"bar"}}"#
-                .to_owned(),
+            r#"{"userId":"foo","name":"Foo","properties":{"baz":"quux","foo":"bar"}}"#.to_owned(),
         );
 
         assert_eq!(

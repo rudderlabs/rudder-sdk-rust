@@ -1,6 +1,6 @@
-use rudderanalytics::batcher::Batcher;
-use rudderanalytics::errors::Error as AnalyticsError;
-use rudderanalytics::message::{
+use testrudder::batcher::Batcher;
+use testrudder::errors::Error as AnalyticsError;
+use testrudder::message::{
     Alias, Batch, BatchMessage, Group, Identify, Message, Page, Screen, Track,
 };
 // / To test all the cases run the command `cargo test --all`

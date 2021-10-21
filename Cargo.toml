@@ -1,11 +1,12 @@
 [package]
-name = "rudderanalytics"
+name = "testrudder"
 version = "1.0.0"
 edition = "2018"
 readme = "README.md"
 
+
 [[bin]]
-name = "test-rudder"
+name = "rudder"
 path = "src/main.rs"
 required-features = ["cli"]
 

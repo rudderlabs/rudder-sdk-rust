@@ -1,9 +1,9 @@
 //! An example showing how to do an ETL-like operation loading events into
 //! Segment.
 
-use rudderanalytics::batcher::Batcher;
-use rudderanalytics::client::RudderAnalytics;
-use rudderanalytics::message::{BatchMessage, Track};
+use testrudder::batcher::Batcher;
+use testrudder::client::RudderAnalytics;
+use testrudder::message::{BatchMessage, Track};
 use serde_json::json;
 
 fn main() {

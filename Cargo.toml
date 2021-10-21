@@ -5,7 +5,7 @@ edition = "2018"
 readme = "README.md"
 
 [[bin]]
-name = "rudderanalytics"
+name = "test-rudder"
 path = "src/main.rs"
 required-features = ["cli"]
 

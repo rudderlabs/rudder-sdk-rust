@@ -18,7 +18,7 @@ fn main() {
     });
     let track_msg = Message::Track(Track {
         user_id: Some("sample_user_id".to_string()),
-        event: "Test Event".to_owned(),
+        event: "Track Event".to_owned(),
         properties: Some(json!({
             "some property": "some value",
             "some other property": "some other value",
@@ -27,7 +27,7 @@ fn main() {
     });
     let page_msg = Message::Page(Page {
         user_id: Some("sample_user_id".to_string()),
-        name: "Cart viewd".to_owned(),
+        name: "Cart".to_owned(),
         properties: Some(json!({
             "some property": "some value",
             "some other property": "some other value",
@@ -45,7 +45,7 @@ fn main() {
     });
     let screen_msg = Message::Screen(Screen {
         user_id: Some("sample_user_id".to_string()),
-        name: "sample_screen".to_owned(),
+        name: "sample screen".to_owned(),
         properties: Some(json!({
             "some property": "some value",
             "some other property": "some other value",

@@ -3,6 +3,7 @@ name = "testrudder"
 version = "1.0.0"
 edition = "2018"
 readme = "README.md"
+description = "test rudder sdk to send events to rudderstack"
 
 
 [[bin]]

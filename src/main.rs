@@ -6,6 +6,7 @@ use rudderanalytics::message::Message;
 use std::io;
 
 fn main() -> Result<(), Error> {
+    env_logger::init();
     let matches = App::new("Rudderanalytics")
         .version("0.1")
         .about("Sends analytics events to RudderStack")

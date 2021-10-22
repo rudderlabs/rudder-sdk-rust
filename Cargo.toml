@@ -1,13 +1,15 @@
 [package]
-name = "testrudder"
+name = "rudderanalytics"
 version = "1.0.0"
 edition = "2018"
 readme = "README.md"
-description = "test rudder sdk to send events to rudderstack"
+description = "Rust SDK to send events to rudderstack"
+license = "MIT"
+keyword = ["rudder","rudderanalytics","analytics"]
 
 
 [[bin]]
-name = "rudder"
+name = "rudderanalytics"
 path = "src/main.rs"
 required-features = ["cli"]
 

@@ -42,14 +42,14 @@ Once the RudderStack client is initialized, you can use it to send your events. 
 use serde_json::json;
 
 rudder_analytics.send(&Message::Track(Track {
-        user_id: Some("sample_user_id".to_string()),
-            event: "Test Event".to_owned(),
-            properties: Some(json!({
-                "some property": "some value",
-                "some other property": "some other value",
-            })),
-            ..Default::default()
-        })).expect("Failed to send data to Rudderstack");
+    user_id: Some("sample_user_id".to_string()),
+    event: "Test Event".to_owned(),
+    properties: Some(json!({
+        "some property": "some value",
+        "some other property": "some other value",
+    })),
+    ..Default::default()
+})).expect("Failed to send data to Rudderstack");
 ```
 
 For more information on the supported calls, refer to the [**documentation**](https://docs.rudderstack.com/stream-sources/rudderstack-sdk-integration-guides/rudderstack-rust-sdk#sending-events-from-rudderstack).

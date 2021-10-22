@@ -1,8 +1,8 @@
 use clap::{App, AppSettings, Arg, SubCommand};
 use failure::Error;
 use log::debug;
-use testrudder::client::RudderAnalytics;
-use testrudder::message::Message;
+use rudderanalytics::client::RudderAnalytics;
+use rudderanalytics::message::Message;
 use std::io;
 
 fn main() -> Result<(), Error> {

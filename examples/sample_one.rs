@@ -1,5 +1,5 @@
-use testrudder::client::RudderAnalytics;
-use testrudder::message::{
+use rudderanalytics::client::RudderAnalytics;
+use rudderanalytics::message::{
     Alias, Batch, BatchMessage, Group, Identify, Message, Page, Screen, Track,
 };
 use serde_json::json;

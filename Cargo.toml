@@ -5,7 +5,7 @@ edition = "2018"
 readme = "README.md"
 description = "Rust SDK to send events to rudderstack"
 license = "MIT"
-keyword = ["rudder","rudderanalytics","analytics"]
+keywords = ["rudder","rudderanalytics","analytics"]
 
 
 [[bin]]

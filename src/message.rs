@@ -31,8 +31,8 @@ pub struct Identify {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,8 +62,8 @@ pub struct Track {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,8 +93,8 @@ pub struct Page {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -124,8 +124,8 @@ pub struct Screen {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -156,8 +156,8 @@ pub struct Group {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -184,8 +184,8 @@ pub struct Alias {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -209,6 +209,10 @@ pub struct Batch {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// The timestamp associated with this message.
+    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 }
 
 /// An enum containing all messages which may be placed inside a batch.

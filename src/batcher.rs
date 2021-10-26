@@ -4,6 +4,7 @@ use crate::errors::Error as AnalyticsError;
 use crate::message::{Batch, BatchMessage, Message};
 use failure::Error;
 use serde_json::Value;
+use chrono::prelude::*;
 
 const MAX_MESSAGE_SIZE: usize = 1024 * 32;
 const MAX_BATCH_SIZE: usize = 1024 * 512;
@@ -106,6 +107,7 @@ impl Batcher {
             batch: self.buf,
             context: self.context,
             integrations: None,
+            original_timestamp: Some(Utc::now()),
         })
     }
 }

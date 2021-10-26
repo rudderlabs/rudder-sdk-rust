@@ -2,7 +2,18 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-
+/// An enum containing all values which may be sent to RudderStack's API.
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Ruddermessage {
+    Identify(Identify),
+    Track(Track),
+    Page(Page),
+    Screen(Screen),
+    Group(Group),
+    Alias(Alias),
+    Batch(Batch),
+}
 /// An identify event.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Identify {
@@ -18,9 +29,13 @@ pub struct Identify {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub traits: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,11 +46,8 @@ pub struct Identify {
     pub integrations: Option<Value>,
 
     /// Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// A track event.
@@ -56,9 +68,13 @@ pub struct Track {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -69,11 +85,8 @@ pub struct Track {
     pub integrations: Option<Value>,
 
     // Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// A page event.
@@ -94,9 +107,13 @@ pub struct Page {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,11 +124,8 @@ pub struct Page {
     pub integrations: Option<Value>,
 
     // Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// A screen event.
@@ -132,9 +146,13 @@ pub struct Screen {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -145,11 +163,8 @@ pub struct Screen {
     pub integrations: Option<Value>,
 
     // Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// A group event.
@@ -171,9 +186,13 @@ pub struct Group {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub traits: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -184,11 +203,8 @@ pub struct Group {
     pub integrations: Option<Value>,
 
     // Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// An alias event.
@@ -206,9 +222,13 @@ pub struct Alias {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub traits: Option<Value>,
 
-    /// The timestamp associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<DateTime<Utc>>,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -219,11 +239,8 @@ pub struct Alias {
     pub integrations: Option<Value>,
 
     // Type of method
-    pub r#type: String,
+    r#type: String,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
 }
 
 /// A batch of events.
@@ -240,12 +257,17 @@ pub struct Batch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
 
-    // Type of method
-    pub r#type: String,
+    /// The originalTimestamp associated with this message.
+    #[serde(rename = "originalTimestamp")]
+    pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// Generated message id
-    #[serde(rename = "messageId")]
-    pub message_id: String,
+    /// sent at timestamp 
+    #[serde(rename = "sentAt")]
+    sent_at: Option<DateTime<Utc>>,
+
+    // Type of method
+    r#type: String,
+
 }
 
 /// An enum containing all messages which may be placed inside a batch.

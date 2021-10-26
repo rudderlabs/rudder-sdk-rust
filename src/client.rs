@@ -2,12 +2,15 @@ use crate::errors::Error as AnalyticsError;
 use crate::message::Message;
 use failure::Error;
 use std::time::Duration;
+use crate::utils;
+use log::debug;
 
 pub struct RudderAnalytics {
     pub write_key: String,
     pub data_plane_url: String,
     pub client: reqwest::Client,
 }
+
 
 impl RudderAnalytics {
     pub fn load(write_key: String, data_plane_url: String) -> RudderAnalytics {
@@ -36,13 +39,15 @@ impl RudderAnalytics {
         let empty_msg = String::from("");
         let mut error_msg: String = String::from("");
 
-        match msg {
+
+        let rudder_message = match msg {
             Message::Identify(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
                 }
+                utils::parse_identify(b_)    
             }
             Message::Track(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
@@ -50,6 +55,7 @@ impl RudderAnalytics {
                 } else {
                     error_msg = empty_msg;
                 }
+                utils::parse_track(b_)
             }
             Message::Page(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
@@ -57,6 +63,7 @@ impl RudderAnalytics {
                 } else {
                     error_msg = empty_msg;
                 }
+                utils::parse_page(b_)
             }
             Message::Screen(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
@@ -64,6 +71,7 @@ impl RudderAnalytics {
                 } else {
                     error_msg = empty_msg;
                 }
+                utils::parse_screen(b_)
             }
             Message::Group(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
@@ -71,17 +79,24 @@ impl RudderAnalytics {
                 } else {
                     error_msg = empty_msg;
                 }
+                utils::parse_group(b_)
             }
-            Message::Alias(_) => {}
-            Message::Batch(_) => {}
+            Message::Alias(b_) => {
+                utils::parse_alias(b_)
+            }
+            Message::Batch(b_) => {
+                utils::parse_batch(b_)
+            }
         };
 
         if error_msg == String::from("") {
+            debug!("Path: {:?}", path);
+            debug!("rudder_message: {:#?}", rudder_message);
             let res = self
                 .client
                 .post(&format!("{}{}", self.data_plane_url, path))
                 .basic_auth(self.write_key.to_string(), Some(""))
-                .json(&msg)
+                .json(&rudder_message)
                 .send()?;
 
             if res.status() == 200 {

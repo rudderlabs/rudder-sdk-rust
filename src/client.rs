@@ -25,71 +25,110 @@ impl RudderAnalytics {
     }
 
     pub fn send(&self, msg: &Message) -> Result<(), Error> {
-        let path = match msg {
-            Message::Identify(_) => "/v1/identify",
-            Message::Track(_) => "/v1/track",
-            Message::Page(_) => "/v1/page",
-            Message::Screen(_) => "/v1/screen",
-            Message::Group(_) => "/v1/group",
-            Message::Alias(_) => "/v1/alias",
-            Message::Batch(_) => "/v1/batch",
-        };
 
         let id_err_msg = String::from("Either of user_id or anonymous_id is required");
+        let reserve_key_err_msg = String::from("Reserve keyword present in context");
         let empty_msg = String::from("");
         let mut error_msg: String = String::from("");
 
-
-        let rudder_message = match msg {
+        let path = match msg {
             Message::Identify(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                        error_msg = reserve_key_err_msg;
+                    }
                 }
-                utils::parse_identify(b_)    
-            }
+                "/v1/identify"
+            },
             Message::Track(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                        error_msg = reserve_key_err_msg;
+                    }
                 }
-                utils::parse_track(b_)
-            }
+                "/v1/track"
+            },
             Message::Page(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                        error_msg = reserve_key_err_msg;
+                    }
                 }
-                utils::parse_page(b_)
-            }
+                "/v1/page"
+            },
             Message::Screen(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                        error_msg = reserve_key_err_msg;
+                    }
                 }
-                utils::parse_screen(b_)
-            }
+                "/v1/screen"
+            },
             Message::Group(b_) => {
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                        error_msg = reserve_key_err_msg;
+                    }
                 }
-                utils::parse_group(b_)
-            }
+                "/v1/group"
+            },
             Message::Alias(b_) => {
-                utils::parse_alias(b_)
-            }
+                if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                    error_msg = reserve_key_err_msg;
+                }
+                "/v1/alias"
+            },
             Message::Batch(b_) => {
-                utils::parse_batch(b_)
-            }
+                if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
+                    error_msg = reserve_key_err_msg;
+                }
+                "/v1/batch"
+            },
         };
 
+        
+
         if error_msg == String::from("") {
+
+            let rudder_message = match msg {
+                Message::Identify(b_) => {
+                    utils::parse_identify(b_)    
+                }
+                Message::Track(b_) => {
+                    utils::parse_track(b_)
+                }
+                Message::Page(b_) => {
+                    utils::parse_page(b_)
+                }
+                Message::Screen(b_) => {
+                    utils::parse_screen(b_)
+                }
+                Message::Group(b_) => {
+                    utils::parse_group(b_)
+                }
+                Message::Alias(b_) => {
+                    utils::parse_alias(b_)
+                }
+                Message::Batch(b_) => {
+                    utils::parse_batch(b_)
+                }
+            };
+        
             debug!("Path: {:?}", path);
             debug!("rudder_message: {:#?}", rudder_message);
             let res = self

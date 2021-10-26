@@ -35,7 +35,7 @@ pub struct Identify {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,7 +46,7 @@ pub struct Identify {
     pub integrations: Option<Value>,
 
     /// Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -74,7 +74,7 @@ pub struct Track {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -85,7 +85,7 @@ pub struct Track {
     pub integrations: Option<Value>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -113,7 +113,7 @@ pub struct Page {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -124,7 +124,7 @@ pub struct Page {
     pub integrations: Option<Value>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -152,7 +152,7 @@ pub struct Screen {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -163,7 +163,7 @@ pub struct Screen {
     pub integrations: Option<Value>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -192,7 +192,7 @@ pub struct Group {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -203,7 +203,7 @@ pub struct Group {
     pub integrations: Option<Value>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -228,7 +228,7 @@ pub struct Alias {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -239,7 +239,7 @@ pub struct Alias {
     pub integrations: Option<Value>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 
@@ -263,10 +263,10 @@ pub struct Batch {
 
     /// sent at timestamp 
     #[serde(rename = "sentAt")]
-    sent_at: Option<DateTime<Utc>>,
+    pub sent_at: Option<DateTime<Utc>>,
 
     // Type of method
-    r#type: String,
+    pub r#type: String,
 
 }
 

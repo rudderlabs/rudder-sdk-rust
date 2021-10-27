@@ -12,12 +12,13 @@ use crate::ruddermessage::{
 };
 use serde_json::{json, Value};
 use chrono::prelude::*;
-// use rand::Rng;
 
-const NAME: &str = "Rust SDK";
+// constants and reserved keywords
+const NAME: &str = "RudderStack Rust SDK";
 const VERSION: &str = "1.0.0";
 static RESERVED_KEYS : [&str;1] = ["library"];
 
+// function to merge two objects
 fn merge(a: &mut Value, b: Value) {
     match (a, b) {
         (a @ &mut Value::Object(_), Value::Object(b)) => {
@@ -30,8 +31,9 @@ fn merge(a: &mut Value, b: Value) {
     }
 }
 
+// function to check if any reserve keyword is present in a given object or not
+// returns true/false
 pub fn check_reserved_keywords_conflict(context: Value)->bool{
-
     let mut result = false;
     for (k, _v) in context.as_object().unwrap().iter(){
         let s: String = k.to_owned();
@@ -43,16 +45,18 @@ pub fn check_reserved_keywords_conflict(context: Value)->bool{
     result
 }
 
+// Build and return static context fields
 fn get_default_context()->Value{
     let default_context = json!({
         "library":{
-        "name":NAME,
-        "version":VERSION
+            "name": NAME,
+            "version": VERSION
         }
     });
     default_context
 }
 
+// modify identify payload to rudder format
 pub fn parse_identify(msg:&Identify)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -80,6 +84,7 @@ pub fn parse_identify(msg:&Identify)-> Ruddermessage{
     new_message
 }
 
+// modify track payload to rudder format
 pub fn parse_track(msg:&Track)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -108,6 +113,7 @@ pub fn parse_track(msg:&Track)-> Ruddermessage{
     new_message
 }
 
+// modify page payload to rudder format
 pub fn parse_page(msg:&Page)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -136,6 +142,7 @@ pub fn parse_page(msg:&Page)-> Ruddermessage{
     new_message
 }
 
+// modify screen payload to rudder format
 pub fn parse_screen(msg:&Screen)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -164,6 +171,7 @@ pub fn parse_screen(msg:&Screen)-> Ruddermessage{
     new_message
 }
 
+// modify group payload to rudder format
 pub fn parse_group(msg:&Group)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -192,6 +200,7 @@ pub fn parse_group(msg:&Group)-> Ruddermessage{
     new_message
 }
 
+// modify alias payload to rudder format
 pub fn parse_alias(msg:&Alias)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));
@@ -219,6 +228,7 @@ pub fn parse_alias(msg:&Alias)-> Ruddermessage{
     new_message
 }
 
+// modify batch payload to rudder format
 pub fn parse_batch(msg:&Batch)-> Ruddermessage{
     let mut modified_context = get_default_context();
     merge(&mut modified_context, msg.context.clone().unwrap_or(json!({})));

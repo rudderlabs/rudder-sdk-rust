@@ -3,10 +3,10 @@ name = "rudderanalytics"
 version = "1.0.0"
 edition = "2018"
 readme = "README.md"
-description = "Rust SDK to send events to rudderstack"
+description = "The RudderStack Rust SDK is an analytics client to track events from your Rust application"
 license = "MIT"
-keywords = ["rudder","rudderanalytics","analytics"]
-
+keywords = ["rudder","rudderanalytics","analytics","rust analytics"]
+repositary = "https://github.com/rudderlabs/rudder-sdk-rust"
 
 [[bin]]
 name = "rudderanalytics"

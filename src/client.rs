@@ -5,6 +5,7 @@ use std::time::Duration;
 use crate::utils;
 use log::debug;
 
+// Rudderanalytics client
 pub struct RudderAnalytics {
     pub write_key: String,
     pub data_plane_url: String,
@@ -13,6 +14,8 @@ pub struct RudderAnalytics {
 
 
 impl RudderAnalytics {
+
+    // Function to initialize the Rudderanalytics client with write-key and data-plane-url
     pub fn load(write_key: String, data_plane_url: String) -> RudderAnalytics {
         RudderAnalytics {
             write_key,
@@ -24,6 +27,9 @@ impl RudderAnalytics {
         }
     }
 
+    // Function that will receive user event data
+    // and after validation
+    // modify it to Ruddermessage format and send the event to data plane url
     pub fn send(&self, msg: &Message) -> Result<(), Error> {
 
         let id_err_msg = String::from("Either of user_id or anonymous_id is required");
@@ -31,12 +37,15 @@ impl RudderAnalytics {
         let empty_msg = String::from("");
         let mut error_msg: String = String::from("");
 
+        // match the type of event and fetch the proper API path
         let path = match msg {
             Message::Identify(b_) => {
+                // Checking for userId and anonymousId
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    // Checking conflicts with reserved keywords
                     if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                         error_msg = reserve_key_err_msg;
                     }
@@ -44,10 +53,12 @@ impl RudderAnalytics {
                 "/v1/identify"
             },
             Message::Track(b_) => {
+                // Checking for userId and anonymousId
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    // Checking conflicts with reserved keywords
                     if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                         error_msg = reserve_key_err_msg;
                     }
@@ -55,10 +66,12 @@ impl RudderAnalytics {
                 "/v1/track"
             },
             Message::Page(b_) => {
+                // Checking for userId and anonymousId
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    // Checking conflicts with reserved keywords
                     if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                         error_msg = reserve_key_err_msg;
                     }
@@ -66,10 +79,12 @@ impl RudderAnalytics {
                 "/v1/page"
             },
             Message::Screen(b_) => {
+                // Checking for userId and anonymousId
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    // Checking conflicts with reserved keywords
                     if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                         error_msg = reserve_key_err_msg;
                     }
@@ -77,10 +92,12 @@ impl RudderAnalytics {
                 "/v1/screen"
             },
             Message::Group(b_) => {
+                // Checking for userId and anonymousId
                 if b_.user_id == Option::None && b_.anonymous_id == Option::None {
                     error_msg = id_err_msg;
                 } else {
                     error_msg = empty_msg;
+                    // Checking conflicts with reserved keywords
                     if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                         error_msg = reserve_key_err_msg;
                     }
@@ -88,12 +105,14 @@ impl RudderAnalytics {
                 "/v1/group"
             },
             Message::Alias(b_) => {
+                // Checking conflicts with reserved keywords
                 if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                     error_msg = reserve_key_err_msg;
                 }
                 "/v1/alias"
             },
             Message::Batch(b_) => {
+                // Checking conflicts with reserved keywords
                 if b_.context != Option::None && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap()){
                     error_msg = reserve_key_err_msg;
                 }
@@ -104,7 +123,7 @@ impl RudderAnalytics {
         
 
         if error_msg == String::from("") {
-
+            // match the type of event and manipulate the payload to rudder format
             let rudder_message = match msg {
                 Message::Identify(b_) => {
                     utils::parse_identify(b_)    
@@ -129,8 +148,9 @@ impl RudderAnalytics {
                 }
             };
         
-            debug!("Path: {:?}", path);
+            // final payload 
             debug!("rudder_message: {:#?}", rudder_message);
+            // Send the payload to the data plane url
             let res = self
                 .client
                 .post(&format!("{}{}", self.data_plane_url, path))
@@ -138,6 +158,7 @@ impl RudderAnalytics {
                 .json(&rudder_message)
                 .send()?;
 
+            // handle error and send response
             if res.status() == 200 {
                 return Ok(());
             } else {

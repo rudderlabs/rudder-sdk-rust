@@ -5,7 +5,7 @@ edition = "2018"
 readme = "README.md"
 description = "The RudderStack Rust SDK is an analytics client to track events from your Rust application"
 license = "MIT"
-keywords = ["rudder","rudderanalytics","analytics","rust analytics"]
+keywords = ["rudder","rudderanalytics","analytics","rust","rudderstack"]
 repository = "https://github.com/rudderlabs/rudder-sdk-rust"
 
 [[bin]]

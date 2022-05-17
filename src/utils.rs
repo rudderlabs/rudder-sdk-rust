@@ -78,6 +78,7 @@ pub fn parse_identify(msg:&Identify)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("identify"),
         } 
     );
@@ -107,6 +108,7 @@ pub fn parse_track(msg:&Track)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("track"),
         }
     );
@@ -136,6 +138,7 @@ pub fn parse_page(msg:&Page)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("page"),
         }
     );
@@ -165,6 +168,7 @@ pub fn parse_screen(msg:&Screen)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("screen"),
         }
     );
@@ -194,6 +198,7 @@ pub fn parse_group(msg:&Group)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("group"),
         }
     );
@@ -222,6 +227,7 @@ pub fn parse_alias(msg:&Alias)-> Ruddermessage{
             sent_at: Some(sent_at),
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
+            channel: msg.channel,
             r#type: String::from("alias"),
         }
     );
@@ -255,6 +261,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                     sent_at: Some(sent_at),
                     integrations: a_.integrations.clone(),
                     context: Some(modified_context.clone()),
+                    channel: a_.channel,
                     r#type: String::from("identify"),
                 }));
             },           
@@ -269,6 +276,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
+                        channel: a_.channel,
                         r#type: String::from("track"),
                     }
                 ));
@@ -284,6 +292,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
+                        channel: a_.channel,
                         r#type: String::from("page"),
                     }
                 ));
@@ -299,6 +308,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
+                        channel: a_.channel,
                         r#type: String::from("screen"),
                     }
                 ));
@@ -314,6 +324,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
+                        channel: a_.channel,
                         r#type: String::from("group"),
                     }
                 ));
@@ -328,6 +339,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
+                        channel: a_.channel,
                         r#type: String::from("alias"),
                     }
                 ));

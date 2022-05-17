@@ -15,6 +15,14 @@ pub enum Message {
     Batch(Batch),
 }
 
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Channel {
+    Mobile,
+    Web,
+    Server,
+}
+
 /// An identify event.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Identify {
@@ -41,6 +49,10 @@ pub struct Identify {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// A track event.
@@ -72,6 +84,10 @@ pub struct Track {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// A page event.
@@ -103,6 +119,10 @@ pub struct Page {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// A screen event.
@@ -134,6 +154,10 @@ pub struct Screen {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// A group event.
@@ -166,6 +190,10 @@ pub struct Group {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// An alias event.
@@ -194,6 +222,10 @@ pub struct Alias {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// A batch of events.
@@ -213,6 +245,10 @@ pub struct Batch {
     /// The timestamp associated with this message.
     #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 }
 
 /// An enum containing all messages which may be placed inside a batch.

@@ -4,6 +4,7 @@ use log::debug;
 use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::message::Message;
 use std::io;
+use std::io::Read;
 
 fn main() -> Result<(), Error> {
     env_logger::init();
@@ -33,6 +34,7 @@ fn main() -> Result<(), Error> {
         .subcommand(SubCommand::with_name("screen").about("Send a screen event"))
         .subcommand(SubCommand::with_name("group").about("Send a group event"))
         .subcommand(SubCommand::with_name("alias").about("Send an alias event"))
+        .subcommand(SubCommand::with_name("batch").about("Send batched events"))
         .get_matches();
 
     let write_key = matches.value_of("write-key").unwrap().to_owned();
@@ -45,11 +47,11 @@ fn main() -> Result<(), Error> {
     let rudderanalytics = RudderAnalytics::load(write_key, data_plane_url);
 
     fn format() -> String {
-        let mut cmd_ln_inp = String::new();
+        let mut cmd_ln_inp = Vec::new();
         io::stdin()
-            .read_line(&mut cmd_ln_inp)
+            .read_to_end(&mut cmd_ln_inp)
             .expect("Failed To read Input");
-        cmd_ln_inp.to_string()
+        String::from_utf8(cmd_ln_inp).expect("utf8 expected")
     }
 
     let message = match matches.subcommand_name() {
@@ -59,6 +61,7 @@ fn main() -> Result<(), Error> {
         Some("screen") => Message::Screen(serde_json::from_str(&format())?),
         Some("group") => Message::Group(serde_json::from_str(&format())?),
         Some("alias") => Message::Alias(serde_json::from_str(&format())?),
+        Some("batch") => Message::Batch(serde_json::from_str(&format())?),
         Some(_) => panic!("unknown message type"),
         None => panic!("subcommand is required"),
     };

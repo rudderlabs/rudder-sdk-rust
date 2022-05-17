@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use crate::message::Channel;
 
 /// An enum containing all values which may be sent to RudderStack's API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +46,10 @@ pub struct Identify {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
 
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+
     /// Type of method
     pub r#type: String,
 
@@ -83,6 +88,10 @@ pub struct Track {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 
     // Type of method
     pub r#type: String,
@@ -123,6 +132,10 @@ pub struct Page {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
 
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+
     // Type of method
     pub r#type: String,
 
@@ -161,6 +174,10 @@ pub struct Screen {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 
     // Type of method
     pub r#type: String,
@@ -202,6 +219,10 @@ pub struct Group {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
 
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+
     // Type of method
     pub r#type: String,
 
@@ -237,6 +258,10 @@ pub struct Alias {
     /// Integrations to route this message to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrations: Option<Value>,
+
+    /// Identifies the source of the event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
 
     // Type of method
     pub r#type: String,

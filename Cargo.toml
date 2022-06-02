@@ -1,6 +1,6 @@
 [package]
 name = "rudderanalytics"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2018"
 readme = "README.md"
 description = "The RudderStack Rust SDK is an analytics client to track events from your Rust application"

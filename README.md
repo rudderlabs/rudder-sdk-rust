@@ -22,7 +22,7 @@ Include `rudderanalytics` as a dependency in your Rust application `Cargo.toml` 
 
 ```toml
 [dependencies]
-rudderanalytics = "LATEST_VERSION"
+rudderanalytics = "<latest_version>"
 ```
 
 ## Initializing the RudderStack Client

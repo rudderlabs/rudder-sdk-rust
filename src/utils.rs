@@ -17,7 +17,7 @@ use chrono::prelude::*;
 const NAME: &str = "RudderStack Rust SDK";
 const VERSION: &str = "1.0.0";
 static RESERVED_KEYS : [&str;1] = ["library"];
-const  CHANNEL :&str = "server";
+const CHANNEL :&str = "server";
 
 // function to merge two objects
 fn merge(a: &mut Value, b: Value) {

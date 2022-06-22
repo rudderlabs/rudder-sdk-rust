@@ -17,6 +17,7 @@ use chrono::prelude::*;
 const NAME: &str = "RudderStack Rust SDK";
 const VERSION: &str = "1.0.0";
 static RESERVED_KEYS : [&str;1] = ["library"];
+const  CHANNEL :&str = "server";
 
 // function to merge two objects
 fn merge(a: &mut Value, b: Value) {
@@ -79,6 +80,7 @@ pub fn parse_identify(msg:&Identify)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("identify"),
+            channel: CHANNEL.to_string()
         } 
     );
     new_message
@@ -108,6 +110,7 @@ pub fn parse_track(msg:&Track)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("track"),
+            channel: CHANNEL.to_string()
         }
     );
     new_message
@@ -137,6 +140,7 @@ pub fn parse_page(msg:&Page)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("page"),
+            channel: CHANNEL.to_string()
         }
     );
     new_message
@@ -166,6 +170,7 @@ pub fn parse_screen(msg:&Screen)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("screen"),
+            channel: CHANNEL.to_string()
         }
     );
     new_message
@@ -195,6 +200,7 @@ pub fn parse_group(msg:&Group)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("group"),
+            channel: CHANNEL.to_string()
         }
     );
     new_message
@@ -223,6 +229,7 @@ pub fn parse_alias(msg:&Alias)-> Ruddermessage{
             integrations: msg.integrations.clone(),
             context: Some(modified_context),
             r#type: String::from("alias"),
+            channel: CHANNEL.to_string()
         }
     );
     new_message
@@ -256,6 +263,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                     integrations: a_.integrations.clone(),
                     context: Some(modified_context.clone()),
                     r#type: String::from("identify"),
+                    channel: CHANNEL.to_string()
                 }));
             },           
             BatchMessage::Track(a_) =>{
@@ -270,6 +278,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
                         r#type: String::from("track"),
+                        channel: CHANNEL.to_string()
                     }
                 ));
             },           
@@ -285,6 +294,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
                         r#type: String::from("page"),
+                        channel: CHANNEL.to_string()
                     }
                 ));
             },           
@@ -300,6 +310,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
                         r#type: String::from("screen"),
+                        channel: CHANNEL.to_string()
                     }
                 ));
             },           
@@ -315,6 +326,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
                         r#type: String::from("group"),
+                        channel: CHANNEL.to_string()
                     }
                 ));
             },           
@@ -329,6 +341,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         integrations: a_.integrations.clone(),
                         context: Some(modified_context.clone()),
                         r#type: String::from("alias"),
+                        channel: CHANNEL.to_string()
                     }
                 ));
             },           

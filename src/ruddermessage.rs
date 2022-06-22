@@ -48,6 +48,9 @@ pub struct Identify {
     /// Type of method
     pub r#type: String,
 
+    /// channel in payload
+    pub channel: String,
+
 }
 
 /// A track event.
@@ -86,6 +89,9 @@ pub struct Track {
 
     // Type of method
     pub r#type: String,
+
+    /// channel in payload
+    pub channel: String,
 
 }
 
@@ -126,6 +132,9 @@ pub struct Page {
     // Type of method
     pub r#type: String,
 
+    /// channel in payload
+    pub channel: String,
+
 }
 
 /// A screen event.
@@ -164,6 +173,9 @@ pub struct Screen {
 
     // Type of method
     pub r#type: String,
+
+    /// channel in payload
+    pub channel: String,
 
 }
 
@@ -205,6 +217,9 @@ pub struct Group {
     // Type of method
     pub r#type: String,
 
+    /// channel in payload
+    pub channel: String,
+
 }
 
 /// An alias event.
@@ -240,6 +255,9 @@ pub struct Alias {
 
     // Type of method
     pub r#type: String,
+
+    /// channel in payload
+    pub channel: String,
 
 }
 

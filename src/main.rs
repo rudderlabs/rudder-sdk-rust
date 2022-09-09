@@ -15,7 +15,7 @@ fn main() -> Result<(), Error> {
             Arg::with_name("write-key")
                 .help("Write key to send message with")
                 .takes_value(true)
-                .short("w")
+                .short('w')
                 .long("write-key")
                 .required(true),
         )
@@ -23,7 +23,7 @@ fn main() -> Result<(), Error> {
             Arg::with_name("data-plane-url")
                 .help("Base url to send to your data")
                 .takes_value(true)
-                .short("d")
+                .short('d')
                 .long("data-plane-url")
                 .required(true),
         )

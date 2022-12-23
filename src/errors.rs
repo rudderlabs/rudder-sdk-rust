@@ -10,6 +10,10 @@ pub enum Error {
     #[fail(display = "message too large")]
     MessageTooLarge(String),
 
+    /// The given batch is too large to be sent to RudderStack's API.
+    #[fail(display = "batch too large")]
+    BatchTooLarge(String),
+
     #[fail(display = "Invalid request")]
     InvalidRequest(String),
 }

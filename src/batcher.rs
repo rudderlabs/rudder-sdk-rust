@@ -1,10 +1,12 @@
 //! Utilities for batching up messages.
 
+use crate::{errors, utils};
 use crate::errors::Error as AnalyticsError;
 use crate::message::{Batch, BatchMessage, Message};
+use chrono::prelude::*;
 use failure::Error;
 use serde_json::Value;
-use chrono::prelude::*;
+use std::io;
 
 const MAX_MESSAGE_SIZE: usize = 1024 * 32;
 const MAX_BATCH_SIZE: usize = 1024 * 512;
@@ -83,21 +85,76 @@ impl Batcher {
     /// Returns an error if the message is too large to be sent to RudderStack's
     /// API.
     pub fn push(&mut self, msg: BatchMessage) -> Result<Option<BatchMessage>, Error> {
-        let size = serde_json::to_vec(&msg)?.len();
-        if size > MAX_MESSAGE_SIZE {
-            return Err(AnalyticsError::MessageTooLarge(String::from(
-                "status code: 400, message: Message too large",
-            ))
-            .into());
-        }
-
-        self.byte_count += size + 1; // +1 to account for Serialized data's extra commas
-        if self.byte_count > MAX_BATCH_SIZE {
-            return Ok(Some(msg));
-        }
+        Batcher::assert_no_reserved_keywords_in_context(&self.context)?;
+        let msg = Batcher::updated_message_with_common_context(self.context.clone(), msg);
+        let size = Batcher::get_size_of_message(&msg)?;
+        Batcher::assert_message_size_before_push(size)?;
+        self.update_byte_count_with_next_msg_size(size);
+        Batcher::assert_batch_size_before_push(self)?;
 
         self.buf.push(msg);
         Ok(None)
+    }
+    fn updated_message_with_common_context(
+        context: Option<Value>,
+        msg: BatchMessage,
+    ) -> BatchMessage {
+        match context {
+            Some(context) => {
+                let mut msg = msg.clone();
+                msg.update_context_with(context);
+                msg
+            }
+            None => msg,
+        }
+    }
+    fn get_size_of_message(msg: &BatchMessage) -> Result<usize, errors::Error> {
+        match serde_json::to_vec(&msg).map_err(|e| {
+            Err(AnalyticsError::InvalidRequest(String::from(format!(
+                "status code: 400, message: {}",
+                e
+            ))))
+        }) {
+            Ok(v) => Ok(v.len()),
+            Err(e) => {
+                return e;
+            }
+        }
+    }
+    fn assert_message_size_before_push(size: usize) -> Result<(), errors::Error> {
+        if size > MAX_MESSAGE_SIZE {
+            Err(AnalyticsError::MessageTooLarge(String::from(
+                "status code: 400, message: Message too large",
+            )))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn update_byte_count_with_next_msg_size(&mut self, next_msg_size: usize) {
+        self.byte_count += next_msg_size + 1; // +1 to account for Serialized data's extra commas
+    }
+    fn assert_batch_size_before_push(&mut self) -> Result<(), errors::Error> {
+        if self.byte_count > MAX_BATCH_SIZE {
+            Err(AnalyticsError::BatchTooLarge(String::from(
+                "status code: 400, message: Batch size too large",
+            )))
+        } else {
+            Ok(())
+        }
+    }
+    fn assert_no_reserved_keywords_in_context(context : &Option<Value>)-> Result<(), errors::Error>{
+        // Checking conflicts with reserved keywords
+        let reserve_key_err_msg = String::from("Reserve keyword present in context");
+        return if *context != Option::None
+            && utils::check_reserved_keywords_conflict(context.clone().unwrap())
+        {
+            Err(AnalyticsError::BatchTooLarge(String::from(
+                format!("status code: 400, message: {}", reserve_key_err_msg)
+            )))
+        }else {
+            Ok(())
+        }
     }
 
     /// Consumes this batcher and converts it into a message that can be sent to
@@ -105,8 +162,8 @@ impl Batcher {
     pub fn into_message(self) -> Message {
         Message::Batch(Batch {
             batch: self.buf,
-            context: self.context,
             integrations: None,
+            context: self.context,
             original_timestamp: Some(Utc::now()),
         })
     }

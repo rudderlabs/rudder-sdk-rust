@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 /// An enum containing all values which may be sent to RudderStack's API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -31,7 +31,7 @@ pub struct Identify {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -62,7 +62,7 @@ pub struct Track {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -93,7 +93,7 @@ pub struct Page {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -124,7 +124,7 @@ pub struct Screen {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -156,7 +156,7 @@ pub struct Group {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -184,7 +184,7 @@ pub struct Alias {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -203,7 +203,7 @@ pub struct Batch {
     pub batch: Vec<BatchMessage>,
 
     /// Context associated with this message.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    // #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<Value>,
 
     /// Integrations to route this message to.
@@ -211,7 +211,7 @@ pub struct Batch {
     pub integrations: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 }
 
@@ -231,4 +231,58 @@ pub enum BatchMessage {
     Group(Group),
     #[serde(rename = "alias")]
     Alias(Alias),
+}
+
+impl BatchMessage {
+    pub fn update_context_with(&mut self, context: Value) {
+        match self {
+            BatchMessage::Identify(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context)
+            }
+            BatchMessage::Track(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context);
+            }
+            BatchMessage::Page(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context);
+            }
+            BatchMessage::Screen(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context);
+            }
+            BatchMessage::Group(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context);
+            }
+            BatchMessage::Alias(message) => {
+                message.context = BatchMessage::get_merged_context(&message.context, &context);
+            }
+        }
+    }
+
+    fn get_merged_context(old_context: &Option<Value>, new_context: &Value) -> Option<Value> {
+        let original_context = match old_context {
+            Some(value) => value,
+            None => &Value::Null,
+        };
+        return Some(BatchMessage::merge_values(original_context, new_context));
+    }
+    fn merge_values(original: &Value, updated_values: &Value) -> Value {
+        match original {
+            Value::Object(map) => {
+                let mut map = map.clone();
+                BatchMessage::update_map_with_value(&mut map, updated_values);
+                Value::Object(map)
+            }
+            _ => updated_values.clone(),
+        }
+    }
+    fn update_map_with_value(map: &mut Map<String, Value>, value: &Value) {
+        match value {
+            Value::Object(updated_value_map) => {
+                for (k, v) in updated_value_map {
+                    map.insert(k.clone(), v.clone());
+                }
+            }
+
+            _ => {}
+        }
+    }
 }

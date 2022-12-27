@@ -1,8 +1,8 @@
 //! Utilities for batching up messages.
 
-use crate::{errors, utils};
 use crate::errors::Error as AnalyticsError;
 use crate::message::{Batch, BatchMessage, Message};
+use crate::{errors, utils};
 use chrono::prelude::*;
 use failure::Error;
 use serde_json::Value;
@@ -143,18 +143,21 @@ impl Batcher {
             Ok(())
         }
     }
-    fn assert_no_reserved_keywords_in_context(context : &Option<Value>)-> Result<(), errors::Error>{
+    fn assert_no_reserved_keywords_in_context(
+        context: &Option<Value>,
+    ) -> Result<(), errors::Error> {
         // Checking conflicts with reserved keywords
         let reserve_key_err_msg = String::from("Reserve keyword present in context");
         return if *context != Option::None
             && utils::check_reserved_keywords_conflict(context.clone().unwrap())
         {
-            Err(AnalyticsError::BatchTooLarge(String::from(
-                format!("status code: 400, message: {}", reserve_key_err_msg)
-            )))
-        }else {
+            Err(AnalyticsError::BatchTooLarge(String::from(format!(
+                "status code: 400, message: {}",
+                reserve_key_err_msg
+            ))))
+        } else {
             Ok(())
-        }
+        };
     }
 
     /// Consumes this batcher and converts it into a message that can be sent to
@@ -166,5 +169,80 @@ impl Batcher {
             context: self.context,
             original_timestamp: Some(Utc::now()),
         })
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::message::Track;
+    use serde_json::json;
+
+    #[test]
+    fn test_updated_message_containing_no_context_with_common_context() {
+        let common_context = json!({ "id": "some_id", "name": "some_name" });
+        // msg with no context
+        let inner_track_message_with_no_context = Track {
+            user_id: Some("user_id".to_string()),
+            anonymous_id: None,
+            event: "toto".to_string(),
+            ..Default::default()
+        };
+        let mut _inner_track_msg_for_assertion = inner_track_message_with_no_context.clone();
+        let _failing_track_for_assertion = inner_track_message_with_no_context.clone();
+
+        _inner_track_msg_for_assertion.context = Some(common_context.clone());
+        let track_msg_with_no_context = BatchMessage::Track(inner_track_message_with_no_context);
+
+        let updated_track_msg = Batcher::updated_message_with_common_context(
+            Some(common_context),
+            track_msg_with_no_context,
+        );
+        match updated_track_msg {
+            BatchMessage::Track(track) => {
+                assert_ne!(track.clone(), _failing_track_for_assertion);
+                assert_eq!(track.clone(), _inner_track_msg_for_assertion);
+            }
+            _ => {
+                assert!(false);
+            }
+        }
+    }
+    #[test]
+    fn test_updated_message_containing_context_with_common_context() {
+        let common_context = json!({ "id": "some_id", "name": "some_name" });
+        // msg with no context
+        let inner_track_message_with_default_context = Track {
+            user_id: Some("user_id".to_string()),
+            anonymous_id: None,
+            event: "toto".to_string(),
+            context: Some(
+                json!({"some_property":"some_value", "some_nested_property":{
+                "some_nested_property":"some_value"}}),
+            ),
+            ..Default::default()
+        };
+        let mut _inner_track_msg_for_assertion = inner_track_message_with_default_context.clone();
+        let _failing_track_for_assertion = inner_track_message_with_default_context.clone();
+
+        _inner_track_msg_for_assertion.context = Some(json!({"some_property":"some_value",
+            "some_nested_property":{
+                "some_nested_property":"some_value"},
+            "id": "some_id", "name": "some_name"
+        }));
+        let track_msg_with_default_context = BatchMessage::Track(inner_track_message_with_default_context);
+
+        let updated_track_msg = Batcher::updated_message_with_common_context(
+            Some(common_context),
+            track_msg_with_default_context,
+        );
+        match updated_track_msg {
+            BatchMessage::Track(track) => {
+                assert_ne!(track.clone(), _failing_track_for_assertion);
+                assert_eq!(track.clone(), _inner_track_msg_for_assertion);
+            }
+            _ => {
+                assert!(false);
+            }
+        }
     }
 }

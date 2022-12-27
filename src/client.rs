@@ -120,9 +120,7 @@ impl RudderAnalytics {
                 }
                 "/v1/alias"
             }
-            Message::Batch(b_) => {
-                "/v1/batch"
-            }
+            Message::Batch(b_) => "/v1/batch",
         };
 
         return if error_msg == String::from("") {

@@ -1,50 +1,59 @@
+use crate::errors::Error as AnalyticsError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use crate::errors::Error as AnalyticsError;
-
 
 macro_rules! is_user_id_or_anonymous_id_present {
-    ($msg:ident)=>{
+    ($msg:ident) => {
         $msg.user_id.is_some() || $msg.anonymous_id.is_some()
-    }
+    };
 }
-
 
 macro_rules! is_msg_context_valid {
-    ($msg:ident)=>{
-        $msg.context.is_none || utils::check_reserved_keywords_conflict($msg.context.clone().unwrap())
-    }
+    ($msg:ident) => {
+        $msg.context.is_none
+            || utils::check_reserved_keywords_conflict($msg.context.clone().unwrap())
+    };
 }
 macro_rules! assert_valid_user_id_or_anonymous_id {
-     ($msg:ident)=>{{
-         if is_user_id_or_anonymous_id_present!($msg){
-                    Ok(())
-                }else {
-                    Result::Err(AnalyticsError::InvalidRequest("Either of user_id or anonymous_id is required".to_string()))
-                }
-     }};
+    ($msg:ident) => {{
+        if is_user_id_or_anonymous_id_present!($msg) {
+            Ok(())
+        } else {
+            Result::Err(AnalyticsError::InvalidRequest(
+                "Either of user_id or anonymous_id is required".to_string(),
+            ))
+        }
+    }};
 }
 
 macro_rules! assert_valid_context {
-     ($msg:ident)=>{
-         if is_msg_context_valid!(msg){
-                    Ok(())
-                }else {
-                    Err(errors::AnalyticsError::InvalidRequest("Reserve keyword present in context".to_string()))
-                }
-     }
+    ($msg:ident) => {
+        if is_msg_context_valid!(msg) {
+            Ok(())
+        } else {
+            Err(errors::AnalyticsError::InvalidRequest(
+                "Reserve keyword present in context".to_string(),
+            ))
+        }
+    };
 }
 
 macro_rules! self_match_blocks_for_message_types {
-    ($apply_on : expr,$value: ident, $($($msg: ident::$msg_type:ident ),*, $code_block: block);*, $default_block: block)=> {
+    ($apply_on : expr,$value: ident, $($($msg: ident::$msg_type:ident );*, $code_block: block);*, $default_block: block)=> {
         match $apply_on{
             $($($msg::$msg_type($value) => $code_block),* )*
            _ => $default_block,
         }
        }
 }
-
+macro_rules! self_match_blocks_for_message_types_with_no_default {
+    ($apply_on : expr,$value: ident, $($($msg: ident::$msg_type:ident );*, $code_block: block);*)=> {
+        match $apply_on{
+            $($($msg::$msg_type($value) => $code_block),* )*
+        }
+       }
+}
 
 /// An enum containing all values which may be sent to RudderStack's API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -260,31 +269,15 @@ pub struct Batch {
 }
 
 impl Message {
-    // pub fn assert_valid_message(&self)-> Result<(), AnalyticsError>{
-    //
-    // }
-
     fn assert_valid_user_id_or_anonymous_id(&self) -> Result<(), AnalyticsError> {
-        return match self {
-            Message::Identify(msg) => {
+        self_match_blocks_for_message_types!(self, msg,
+            Message::Track;
+            Message::Identify;
+            Message::Page;
+            Message::Screen;
+            Message::Group,{
                 assert_valid_user_id_or_anonymous_id!(msg)
-            }
-            Message::Track(msg) => {
-                assert_valid_user_id_or_anonymous_id!(msg)
-            }
-            Message::Page(msg) => {
-                assert_valid_user_id_or_anonymous_id!(msg)
-            }
-            Message::Screen(msg) => {
-                assert_valid_user_id_or_anonymous_id!(msg)
-            }
-            Message::Group(msg) => {
-                assert_valid_user_id_or_anonymous_id!(msg)
-            }
-            _ => {
-                Ok(())
-            }
-        };
+            }, {Ok(())} )
     }
 }
 
@@ -308,26 +301,15 @@ pub enum BatchMessage {
 
 impl BatchMessage {
     pub fn update_context_with(&mut self, context: Value) {
-        match self {
-            BatchMessage::Identify(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context)
-            }
-            BatchMessage::Track(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context);
-            }
-            BatchMessage::Page(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context);
-            }
-            BatchMessage::Screen(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context);
-            }
-            BatchMessage::Group(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context);
-            }
-            BatchMessage::Alias(message) => {
-                message.context = BatchMessage::get_merged_context(&message.context, &context);
-            }
-        }
+        self_match_blocks_for_message_types_with_no_default!(self, msg,
+            BatchMessage::Track;
+            BatchMessage::Identify;
+            BatchMessage::Page;
+            BatchMessage::Screen;
+            BatchMessage::Alias;
+            BatchMessage::Group,{
+                msg.context = BatchMessage::get_merged_context(&msg.context, &context)
+            } )
     }
 
     fn get_merged_context(old_context: &Option<Value>, new_context: &Value) -> Option<Value> {
@@ -372,10 +354,10 @@ mod tests {
             event: "event".to_string(),
             ..Default::default()
         });
-        let f = self_match_blocks_for_message_types!(test_message, msg, BatchMessage::Track, {
-            msg.event
+        let f = self_match_blocks_for_message_types!(test_message, msg, BatchMessage::Track;BatchMessage::Identify, {
+            msg.user_id.unwrap()
         }, { "none".to_string() } );
-        assert_eq!(f, "event".to_string());
-        assert_ne!(f, "wrong_event".to_string());
+        assert_eq!(f, "user_id".to_string());
+        assert_ne!(f, "wrong_id".to_string());
     }
 }

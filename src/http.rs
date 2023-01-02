@@ -1,19 +1,17 @@
-use std::time::Duration;
-use log::debug;
 use crate::client::Client;
-use crate::message::Message;
 use crate::errors::Error as AnalyticsError;
+use crate::message::Message;
+use log::debug;
+use std::time::Duration;
 
 use crate::utils;
 
-
-
-pub struct RudderHttpClient{
+pub struct RudderHttpClient {
     client: reqwest::blocking::Client,
     data_plane_url: String,
 }
-const DEFAULT_TIMEOUT_IN_SECS : u64 = 10;
-const DEFAULT_DATA_PLANE_URL : &str = "https://app.rudderstack.com";
+const DEFAULT_TIMEOUT_IN_SECS: u64 = 10;
+const DEFAULT_DATA_PLANE_URL: &str = "https://app.rudderstack.com";
 
 impl Default for RudderHttpClient {
     fn default() -> Self {
@@ -29,9 +27,9 @@ impl Default for RudderHttpClient {
 
 impl Client for RudderHttpClient {
     // Function that will receive user event data
-// and after validation
-// modify it to Ruddermessage format and send the event to data plane url
-    fn send(&self,write_key: &str, msg: &Message) -> Result<(), failure::Error> {
+    // and after validation
+    // modify it to Ruddermessage format and send the event to data plane url
+    fn send(&self, write_key: &str, msg: &Message) -> Result<(), failure::Error> {
         let reserve_key_err_msg = String::from("Reserve keyword present in context");
         let id_err_msg = String::from("Either of user_id or anonymous_id is required");
         let empty_msg = String::from("");
@@ -156,13 +154,10 @@ impl Client for RudderHttpClient {
                     "status code: {}, message: Invalid request",
                     res.status()
                 )))
-                    .into())
+                .into())
             }
         } else {
             Err(AnalyticsError::InvalidRequest(error_msg).into())
         };
     }
-
-
 }
-

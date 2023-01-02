@@ -229,7 +229,8 @@ mod tests {
                 "some_nested_property":"some_value"},
             "id": "some_id", "name": "some_name"
         }));
-        let track_msg_with_default_context = BatchMessage::Track(inner_track_message_with_default_context);
+        let track_msg_with_default_context =
+            BatchMessage::Track(inner_track_message_with_default_context);
 
         let updated_track_msg = Batcher::updated_message_with_common_context(
             Some(common_context),

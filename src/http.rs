@@ -3,12 +3,17 @@ use crate::errors::Error as AnalyticsError;
 use crate::message::Message;
 use log::debug;
 use std::time::Duration;
+use failure::Error;
+use crate::config::Config;
 
 use crate::utils;
 
 pub struct RudderHttpClient {
     client: reqwest::blocking::Client,
     data_plane_url: String,
+    write_key: String,
+    config: Config
+
 }
 const DEFAULT_TIMEOUT_IN_SECS: u64 = 10;
 const DEFAULT_DATA_PLANE_URL: &str = "https://app.rudderstack.com";
@@ -21,110 +26,31 @@ impl Default for RudderHttpClient {
                 .build()
                 .unwrap(),
             data_plane_url: DEFAULT_DATA_PLANE_URL.to_string(),
+            write_key: String::new(),
+            config: Config::default()
         }
     }
 }
 
 impl Client for RudderHttpClient {
+
     // Function that will receive user event data
     // and after validation
     // modify it to Ruddermessage format and send the event to data plane url
-    fn send(&self, write_key: &str, msg: &Message) -> Result<(), failure::Error> {
-        let reserve_key_err_msg = String::from("Reserve keyword present in context");
-        let id_err_msg = String::from("Either of user_id or anonymous_id is required");
-        let empty_msg = String::from("");
-        let mut error_msg: String = String::from("");
-
+    fn send_compat(&self, write_key: &str, msg: &Message) -> Result<(), failure::Error> {
+        msg.assert_valid_user_id_or_anonymous_id()?;
+        msg.assert_valid_context()?;
         // match the type of event and fetch the proper API path
         let path = match msg {
-            Message::Identify(b_) => {
-                // Checking for userId and anonymousId
-                if b_.user_id == Option::None && b_.anonymous_id == Option::None {
-                    error_msg = id_err_msg;
-                } else {
-                    error_msg = empty_msg;
-                    // Checking conflicts with reserved keywords
-                    if b_.context != Option::None
-                        && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                    {
-                        error_msg = reserve_key_err_msg;
-                    }
-                }
-                "/v1/identify"
-            }
-            Message::Track(b_) => {
-                // Checking for userId and anonymousId
-                if b_.user_id == Option::None && b_.anonymous_id == Option::None {
-                    error_msg = id_err_msg;
-                } else {
-                    error_msg = empty_msg;
-                    // Checking conflicts with reserved keywords
-                    if b_.context != Option::None
-                        && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                    {
-                        error_msg = reserve_key_err_msg;
-                    }
-                }
-                "/v1/track"
-            }
-            Message::Page(b_) => {
-                // Checking for userId and anonymousId
-                if b_.user_id == Option::None && b_.anonymous_id == Option::None {
-                    error_msg = id_err_msg;
-                } else {
-                    error_msg = empty_msg;
-                    // Checking conflicts with reserved keywords
-                    if b_.context != Option::None
-                        && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                    {
-                        error_msg = reserve_key_err_msg;
-                    }
-                }
-                "/v1/page"
-            }
-            Message::Screen(b_) => {
-                // Checking for userId and anonymousId
-                if b_.user_id == Option::None && b_.anonymous_id == Option::None {
-                    error_msg = id_err_msg;
-                } else {
-                    error_msg = empty_msg;
-                    // Checking conflicts with reserved keywords
-                    if b_.context != Option::None
-                        && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                    {
-                        error_msg = reserve_key_err_msg;
-                    }
-                }
-                "/v1/screen"
-            }
-            Message::Group(b_) => {
-                // Checking for userId and anonymousId
-                if b_.user_id == Option::None && b_.anonymous_id == Option::None {
-                    error_msg = id_err_msg;
-                } else {
-                    error_msg = empty_msg;
-                    // Checking conflicts with reserved keywords
-                    if b_.context != Option::None
-                        && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                    {
-                        error_msg = reserve_key_err_msg;
-                    }
-                }
-                "/v1/group"
-            }
-            Message::Alias(b_) => {
-                // Checking conflicts with reserved keywords
-                if b_.context != Option::None
-                    && utils::check_reserved_keywords_conflict(b_.context.clone().unwrap())
-                {
-                    error_msg = reserve_key_err_msg;
-                }
-                "/v1/alias"
-            }
+            Message::Identify(b_) => "/v1/identify",
+            Message::Track(b_) => "/v1/track",
+            Message::Page(b_) => "/v1/page",
+            Message::Screen(b_) => "/v1/screen",
+            Message::Group(b_) => "/v1/group",
+            Message::Alias(b_) => "/v1/alias",
             Message::Batch(b_) => "/v1/batch",
         };
 
-        return if error_msg == String::from("") {
             // match the type of event and manipulate the payload to rudder format
             let rudder_message = match msg {
                 Message::Identify(b_) => utils::parse_identify(b_),
@@ -156,8 +82,62 @@ impl Client for RudderHttpClient {
                 )))
                 .into())
             }
-        } else {
-            Err(AnalyticsError::InvalidRequest(error_msg).into())
-        };
+
     }
+
+    fn send(&self, message: &Message) -> Result<(), Error> {
+        todo!()
+    }
+
+    fn flush(&self,) -> Result<(), Error> {
+        todo!()
+    }
+
+
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mockito::{mock, Mock};
+    # [test]
+    fn test_initialisation() {
+        let rudder_client = RudderHttpClient{
+            ..Default::default()
+        };
+        assert_eq!(rudder_client.write_key, "".to_string());
+        assert_eq!(rudder_client.data_plane_url, DEFAULT_DATA_PLANE_URL.to_string());
+        assert_eq!(rudder_client.config, Config{..Default::default()});
+
+        let rudder_client = RudderHttpClient{
+            write_key: "write_key".to_string(),
+            ..Default::default()
+        };
+        assert_eq!(rudder_client.write_key, "write_key".to_string())
+    }
+    #[test]
+    fn test_send_success() {
+        let rudder_client = RudderHttpClient{client: reqwest::blocking::Client::builder()
+            .build()
+            .unwrap(),
+            data_plane_url: mockito::server_url(),
+            ..Default::default()};
+        let _m = mock_rudder_server("POST", "/batch", 200, "");
+    }
+
+
+    fn mock_rudder_server(http_method : &str, path : &str, expected_status : usize, response_body: &str) -> Mock {
+         mock(http_method, path)
+            .with_status(expected_status)
+            .with_header("content-type", "application/json")
+            // .with_header("x-api-key", "1234")
+            .with_body(response_body)
+            .create()
+
+        // Any calls to GET /hello beyond this line will respond with 201, the
+        // `content-type: text/plain` header and the body "world".
+    }
+
+
+
 }

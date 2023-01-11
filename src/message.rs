@@ -2,6 +2,7 @@ use crate::errors::Error as AnalyticsError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use crate::utils;
 
 macro_rules! is_user_id_or_anonymous_id_present {
     ($msg:ident) => {
@@ -11,7 +12,7 @@ macro_rules! is_user_id_or_anonymous_id_present {
 
 macro_rules! is_msg_context_valid {
     ($msg:ident) => {
-        $msg.context.is_none
+        $msg.context.is_none()
             || utils::check_reserved_keywords_conflict($msg.context.clone().unwrap())
     };
 }
@@ -29,14 +30,14 @@ macro_rules! assert_valid_user_id_or_anonymous_id {
 
 macro_rules! assert_valid_context {
     ($msg:ident) => {
-        if is_msg_context_valid!(msg) {
+        if is_msg_context_valid!($msg) {
             Ok(())
         } else {
-            Err(errors::AnalyticsError::InvalidRequest(
+            Result::Err(AnalyticsError::InvalidRequest(
                 "Reserve keyword present in context".to_string(),
             ))
         }
-    };
+    }
 }
 
 macro_rules! self_match_blocks_for_message_types {
@@ -269,7 +270,7 @@ pub struct Batch {
 }
 
 impl Message {
-    fn assert_valid_user_id_or_anonymous_id(&self) -> Result<(), AnalyticsError> {
+    pub fn assert_valid_user_id_or_anonymous_id(&self) -> Result<(), AnalyticsError> {
         self_match_blocks_for_message_types!(self, msg,
             Message::Track;
             Message::Identify;
@@ -277,6 +278,17 @@ impl Message {
             Message::Screen;
             Message::Group,{
                 assert_valid_user_id_or_anonymous_id!(msg)
+            }, {Ok(())} )
+    }
+    pub fn assert_valid_context(&self) -> Result<(), AnalyticsError> {
+        self_match_blocks_for_message_types!(self, msg,
+            Message::Track;
+            Message::Identify;
+            Message::Page;
+            Message::Screen;
+            Message::Alias;
+            Message::Group,{
+                assert_valid_context!(msg)
             }, {Ok(())} )
     }
 }

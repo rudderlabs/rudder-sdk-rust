@@ -4,17 +4,26 @@ use crate::utils;
 use failure::Error;
 use log::debug;
 use std::time::Duration;
+use crate::config::Config;
 
+
+pub trait Client {
+    fn send_compat(&self, write_key: &str, message: &Message) -> Result<(), Error>;
+    fn send(&self, message: &Message) -> Result<(), Error>;
+    fn flush(&self) -> Result<(), Error>;
+}
+
+
+#[deprecated(since = "2.0.0", note = "Use `http::RudderHttpClient` instead")]
 pub struct RudderAnalytics {
     pub write_key: String,
     pub data_plane_url: String,
     pub client: reqwest::blocking::Client,
 }
-pub trait Client {
-    fn send(&self, write_key: &str, message: &Message) -> Result<(), Error>;
-}
+#[deprecated(since = "2.0.0", note = "Use `http::RudderHttpClient` instead")]
 impl RudderAnalytics {
     // Function to initialize the Rudderanalytics client with write-key and data-plane-url
+    #[deprecated(since = "2.0.0", note = "Use `http::RudderHttpClient.load` instead")]
     pub fn load(write_key: String, data_plane_url: String) -> RudderAnalytics {
         RudderAnalytics {
             write_key,
@@ -25,8 +34,9 @@ impl RudderAnalytics {
                 .unwrap(),
         }
     }
+    #[deprecated(since = "2.0.0", note = "Use `http::RudderHttpClient.send` instead")]
     fn send(&self, msg: &Message) -> Result<(), failure::Error> {
-        //TODO: implement this method
-        return Ok(());
+        todo!()
+
     }
 }

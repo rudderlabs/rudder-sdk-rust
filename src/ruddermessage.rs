@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// An enum containing all values which may be sent to RudderStack's API.
+/// An enum containing all values which may be sent to `RudderStack`'s API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Ruddermessage {
@@ -14,6 +14,7 @@ pub enum Ruddermessage {
     Alias(Alias),
     Batch(Batch),
 }
+
 /// An identify event.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Identify {
@@ -33,7 +34,7 @@ pub struct Identify {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -50,7 +51,6 @@ pub struct Identify {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// A track event.
@@ -75,7 +75,7 @@ pub struct Track {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -92,7 +92,6 @@ pub struct Track {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// A page event.
@@ -117,7 +116,7 @@ pub struct Page {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -134,7 +133,6 @@ pub struct Page {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// A screen event.
@@ -159,7 +157,7 @@ pub struct Screen {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -176,7 +174,6 @@ pub struct Screen {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// A group event.
@@ -202,7 +199,7 @@ pub struct Group {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -219,7 +216,6 @@ pub struct Group {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// An alias event.
@@ -241,7 +237,7 @@ pub struct Alias {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
@@ -258,7 +254,6 @@ pub struct Alias {
 
     /// channel in payload
     pub channel: String,
-
 }
 
 /// A batch of events.
@@ -279,13 +274,12 @@ pub struct Batch {
     #[serde(rename = "originalTimestamp")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
-    /// sent at timestamp 
+    /// sent at timestamp
     #[serde(rename = "sentAt")]
     pub sent_at: Option<DateTime<Utc>>,
 
     // Type of method
     pub r#type: String,
-
 }
 
 /// An enum containing all messages which may be placed inside a batch.

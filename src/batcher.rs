@@ -2,9 +2,9 @@
 
 use crate::errors::Error as AnalyticsError;
 use crate::message::{Batch, BatchMessage, Message};
+use chrono::prelude::*;
 use failure::Error;
 use serde_json::Value;
-use chrono::prelude::*;
 
 const MAX_MESSAGE_SIZE: usize = 1024 * 32;
 const MAX_BATCH_SIZE: usize = 1024 * 512;
@@ -24,7 +24,7 @@ const MAX_BATCH_SIZE: usize = 1024 * 512;
 // / let rudderAnalytics = RudderAnalytics::load("WRITE-KEY","DATA-PLANE-URL");
 // /
 // / for i in 0..100 {
-// /     let msg = BatchMessage::Track(Track {
+// /     let message = BatchMessage::Track(Track {
 // /         user_id: Some(format!("user-{}", i)),
 // /         event: "Example".to_owned(),
 // /         properties: Some(json!({ "foo": "bar" })),
@@ -36,10 +36,10 @@ const MAX_BATCH_SIZE: usize = 1024 * 512;
 // /     //
 // /     // When this occurs, we flush the batcher, create a new batcher, and add
 // /     // the message into the new batcher.
-// /     if let Some(msg) = batcher.push(msg).unwrap() {
+// /     if let Some(message) = batcher.push(message).unwrap() {
 // /         rudderAnalytics.send(&batcher.into_message()).unwrap();
 // /         batcher = Batcher::new(None);
-// /         batcher.push(msg).unwrap();
+// /         batcher.push(message).unwrap();
 // /     }
 // / }
 /// ```
@@ -75,15 +75,15 @@ impl Batcher {
     /// Returns `Ok(None)` if the message was accepted and is now owned by the
     /// batcher.
     ///
-    /// Returns `Ok(Some(msg))` if the message was rejected because the current
+    /// Returns `Ok(Some(message))` if the message was rejected because the current
     /// batch would be oversized if this message were accepted. The given
     /// message is returned back, and it is recommended that you flush the
-    /// current batch before attempting to push `msg` in again.
+    /// current batch before attempting to push `message` in again.
     ///
     /// Returns an error if the message is too large to be sent to RudderStack's
     /// API.
-    pub fn push(&mut self, msg: BatchMessage) -> Result<Option<BatchMessage>, Error> {
-        let size = serde_json::to_vec(&msg)?.len();
+    pub fn push(&mut self, message: BatchMessage) -> Result<Option<BatchMessage>, Error> {
+        let size = serde_json::to_vec(&message)?.len();
         if size > MAX_MESSAGE_SIZE {
             return Err(AnalyticsError::MessageTooLarge(String::from(
                 "status code: 400, message: Message too large",
@@ -93,10 +93,10 @@ impl Batcher {
 
         self.byte_count += size + 1; // +1 to account for Serialized data's extra commas
         if self.byte_count > MAX_BATCH_SIZE {
-            return Ok(Some(msg));
+            return Ok(Some(message));
         }
 
-        self.buf.push(msg);
+        self.buf.push(message);
         Ok(None)
     }
 

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// An enum containing all values which may be sent to RudderStack's API.
+/// An enum containing all values which may be sent to `RudderStack`'s API.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Message {
@@ -31,7 +31,7 @@ pub struct Identify {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -62,7 +62,7 @@ pub struct Track {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -93,7 +93,7 @@ pub struct Page {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -124,7 +124,7 @@ pub struct Screen {
     pub properties: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -156,7 +156,7 @@ pub struct Group {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -184,7 +184,7 @@ pub struct Alias {
     pub traits: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 
     /// Context associated with this message.
@@ -200,7 +200,7 @@ pub struct Alias {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Batch {
     /// The batch of messages to send.
-    pub batch: Vec<BatchMessage>,
+    pub messages: Vec<BatchMessage>,
 
     /// Context associated with this message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -211,10 +211,11 @@ pub struct Batch {
     pub integrations: Option<Value>,
 
     /// The timestamp associated with this message.
-    #[serde(rename="originalTimestamp", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "originalTimestamp", skip_serializing_if = "Option::is_none")]
     pub original_timestamp: Option<DateTime<Utc>>,
 }
 
+#[allow(clippy::module_name_repetitions)]
 /// An enum containing all messages which may be placed inside a batch.
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]

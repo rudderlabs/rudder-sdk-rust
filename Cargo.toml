@@ -1,32 +1,26 @@
 [package]
-name = "rudderanalytics"
+name = "grafbase-rudderstack"
 version = "1.1.2"
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 description = "The RudderStack Rust SDK is an analytics client to track events from your Rust application"
 license = "MIT"
-keywords = ["rudder","rudderanalytics","analytics","rust","rudderstack"]
-repository = "https://github.com/rudderlabs/rudder-sdk-rust"
+repository = "https://github.com/grafbase/grafbase-rudderstack"
 
-[[bin]]
-name = "rudderanalytics"
-path = "src/main.rs"
-required-features = ["cli"]
 
 [dependencies]
 failure = "0.1"
-reqwest = { version = "0.11", default-features = false, features=['json', 'blocking']}
+reqwest = { version = "0.11", default-features = false, features = [
+    'json',
+    'blocking',
+] }
 serde_json = "1.0"
 log = "0.4"
-env_logger = "0.9"
+env_logger = "0.10"
 
 [dependencies.chrono]
 features = ["serde"]
 version = "0.4"
-
-[dependencies.clap]
-optional = true
-version = "3.2"
 
 [dependencies.serde]
 features = ["derive"]
@@ -34,6 +28,5 @@ version = "1.0"
 
 [features]
 default = ["default-tls"]
-cli = ["clap"]
 default-tls = ["reqwest/default-tls"]
 rustls-tls = ["reqwest/rustls-tls"]

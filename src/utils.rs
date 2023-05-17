@@ -1,8 +1,7 @@
 use crate::message::{Alias, Batch, BatchMessage, Group, Identify, Page, Screen, Track};
 use crate::ruddermessage::{
-    Alias as Rudderalias, Batch as Rudderbatch, BatchMessage as Rudderbatchmessage,
-    Group as Ruddergroup, Identify as Rudderidentify, Page as Rudderpage, Ruddermessage,
-    Screen as Rudderscreen, Track as Ruddertrack,
+    Alias as Rudderalias, Batch as Rudderbatch, BatchMessage as Rudderbatchmessage, Group as Ruddergroup,
+    Identify as Rudderidentify, Page as Rudderpage, Ruddermessage, Screen as Rudderscreen, Track as Ruddertrack,
 };
 use chrono::prelude::*;
 use serde_json::{json, Value};
@@ -54,10 +53,7 @@ fn get_default_context() -> Value {
 // modify identify payload to rudder format
 pub fn parse_identify(message: &Identify) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -81,10 +77,7 @@ pub fn parse_identify(message: &Identify) -> Ruddermessage {
 // modify track payload to rudder format
 pub fn parse_track(message: &Track) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -109,10 +102,7 @@ pub fn parse_track(message: &Track) -> Ruddermessage {
 // modify page payload to rudder format
 pub fn parse_page(message: &Page) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -137,10 +127,7 @@ pub fn parse_page(message: &Page) -> Ruddermessage {
 // modify screen payload to rudder format
 pub fn parse_screen(message: &Screen) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -165,10 +152,7 @@ pub fn parse_screen(message: &Screen) -> Ruddermessage {
 // modify group payload to rudder format
 pub fn parse_group(message: &Group) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -193,10 +177,7 @@ pub fn parse_group(message: &Group) -> Ruddermessage {
 // modify alias payload to rudder format
 pub fn parse_alias(message: &Alias) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        message.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, message.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if message.original_timestamp.is_none() {
         Some(sent_at)
@@ -221,10 +202,7 @@ pub fn parse_alias(message: &Alias) -> Ruddermessage {
 // modify batch payload to rudder format
 pub fn parse_batch(batch: &Batch) -> Ruddermessage {
     let mut modified_context = get_default_context();
-    merge(
-        &mut modified_context,
-        batch.context.clone().unwrap_or(json!({})),
-    );
+    merge(&mut modified_context, batch.context.clone().unwrap_or(json!({})));
     let sent_at = Utc::now();
     let original_timestamp = if batch.original_timestamp.is_none() {
         Some(sent_at)
@@ -238,19 +216,17 @@ pub fn parse_batch(batch: &Batch) -> Ruddermessage {
         .messages
         .iter()
         .map(|message| match message {
-            BatchMessage::Identify(identify_message) => {
-                Rudderbatchmessage::Identify(Rudderidentify {
-                    user_id: identify_message.user_id.clone(),
-                    anonymous_id: identify_message.anonymous_id.clone(),
-                    traits: identify_message.traits.clone(),
-                    original_timestamp,
-                    sent_at: Some(sent_at),
-                    integrations: identify_message.integrations.clone(),
-                    context: Some(modified_context.clone()),
-                    r#type: String::from("identify"),
-                    channel: CHANNEL.to_string(),
-                })
-            }
+            BatchMessage::Identify(identify_message) => Rudderbatchmessage::Identify(Rudderidentify {
+                user_id: identify_message.user_id.clone(),
+                anonymous_id: identify_message.anonymous_id.clone(),
+                traits: identify_message.traits.clone(),
+                original_timestamp,
+                sent_at: Some(sent_at),
+                integrations: identify_message.integrations.clone(),
+                context: Some(modified_context.clone()),
+                r#type: String::from("identify"),
+                channel: CHANNEL.to_string(),
+            }),
             BatchMessage::Track(track_message) => Rudderbatchmessage::Track(Ruddertrack {
                 user_id: track_message.user_id.clone(),
                 anonymous_id: track_message.anonymous_id.clone(),

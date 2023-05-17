@@ -49,9 +49,7 @@ impl RudderAnalytics {
                     error_message = empty_message;
                     // Checking conflicts with reserved keywords
                     if identify_message.context.is_some()
-                        && utils::check_reserved_keywords_conflict(
-                            &identify_message.context.clone().unwrap(),
-                        )
+                        && utils::check_reserved_keywords_conflict(&identify_message.context.clone().unwrap())
                     {
                         error_message = reserve_key_error_message;
                     }
@@ -66,9 +64,7 @@ impl RudderAnalytics {
                     error_message = empty_message;
                     // Checking conflicts with reserved keywords
                     if track_message.context.is_some()
-                        && utils::check_reserved_keywords_conflict(
-                            &track_message.context.clone().unwrap(),
-                        )
+                        && utils::check_reserved_keywords_conflict(&track_message.context.clone().unwrap())
                     {
                         error_message = reserve_key_error_message;
                     }
@@ -83,9 +79,7 @@ impl RudderAnalytics {
                     error_message = empty_message;
                     // Checking conflicts with reserved keywords
                     if page_message.context.is_some()
-                        && utils::check_reserved_keywords_conflict(
-                            &page_message.context.clone().unwrap(),
-                        )
+                        && utils::check_reserved_keywords_conflict(&page_message.context.clone().unwrap())
                     {
                         error_message = reserve_key_error_message;
                     }
@@ -100,9 +94,7 @@ impl RudderAnalytics {
                     error_message = empty_message;
                     // Checking conflicts with reserved keywords
                     if screen_message.context.is_some()
-                        && utils::check_reserved_keywords_conflict(
-                            &screen_message.context.clone().unwrap(),
-                        )
+                        && utils::check_reserved_keywords_conflict(&screen_message.context.clone().unwrap())
                     {
                         error_message = reserve_key_error_message;
                     }
@@ -117,9 +109,7 @@ impl RudderAnalytics {
                     error_message = empty_message;
                     // Checking conflicts with reserved keywords
                     if group_message.context.is_some()
-                        && utils::check_reserved_keywords_conflict(
-                            &group_message.context.clone().unwrap(),
-                        )
+                        && utils::check_reserved_keywords_conflict(&group_message.context.clone().unwrap())
                     {
                         error_message = reserve_key_error_message;
                     }
@@ -129,9 +119,7 @@ impl RudderAnalytics {
             Message::Alias(alias_message) => {
                 // Checking conflicts with reserved keywords
                 if alias_message.context.is_some()
-                    && utils::check_reserved_keywords_conflict(
-                        &alias_message.context.clone().unwrap(),
-                    )
+                    && utils::check_reserved_keywords_conflict(&alias_message.context.clone().unwrap())
                 {
                     error_message = reserve_key_error_message;
                 }
@@ -140,9 +128,7 @@ impl RudderAnalytics {
             Message::Batch(batch_message) => {
                 // Checking conflicts with reserved keywords
                 if batch_message.context.is_some()
-                    && utils::check_reserved_keywords_conflict(
-                        &batch_message.context.clone().unwrap(),
-                    )
+                    && utils::check_reserved_keywords_conflict(&batch_message.context.clone().unwrap())
                 {
                     error_message = reserve_key_error_message;
                 }

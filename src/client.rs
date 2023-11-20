@@ -9,7 +9,7 @@ use log::debug;
 pub struct RudderAnalytics {
     pub write_key: String,
     pub data_plane_url: String,
-    pub client: reqwest::Client,
+    pub client: reqwest::blocking::Client,
 }
 
 
@@ -20,7 +20,7 @@ impl RudderAnalytics {
         RudderAnalytics {
             write_key,
             data_plane_url,
-            client: reqwest::Client::builder()
+            client: reqwest::blocking::Client::builder()
                 .connect_timeout(Duration::new(10, 0))
                 .build()
                 .unwrap(),

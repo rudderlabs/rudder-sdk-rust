@@ -8,7 +8,7 @@ use std::io;
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let matches = App::new("Rudderanalytics")
-        .version("1.1.2")
+        .version("1.1.3")
         .about("Sends analytics events to RudderStack")
         .setting(AppSettings::ColoredHelp)
         .arg(

@@ -15,7 +15,7 @@ use chrono::prelude::*;
 
 // constants and reserved keywords
 const NAME: &str = "RudderStack Rust SDK";
-const VERSION: &str = "1.0.0";
+const VERSION: &str = "1.1.3";
 static RESERVED_KEYS : [&str;1] = ["library"];
 const CHANNEL :&str = "server";
 

@@ -1,14 +1,14 @@
+use std::error::Error;
 use clap::{App, AppSettings, Arg, SubCommand};
-use failure::Error;
 use log::debug;
 use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::message::Message;
 use std::io;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let matches = App::new("Rudderanalytics")
-        .version("0.1")
+        .version("1.1.3")
         .about("Sends analytics events to RudderStack")
         .setting(AppSettings::ColoredHelp)
         .arg(
@@ -33,6 +33,7 @@ fn main() -> Result<(), Error> {
         .subcommand(SubCommand::with_name("screen").about("Send a screen event"))
         .subcommand(SubCommand::with_name("group").about("Send a group event"))
         .subcommand(SubCommand::with_name("alias").about("Send an alias event"))
+        .setting(AppSettings::ArgRequiredElseHelp)
         .get_matches();
 
     let write_key = matches.value_of("write-key").unwrap().to_owned();
@@ -63,5 +64,5 @@ fn main() -> Result<(), Error> {
         None => panic!("subcommand is required"),
     };
 
-    rudderanalytics.send(&message)
+    Ok(rudderanalytics.send(&message)?)
 }

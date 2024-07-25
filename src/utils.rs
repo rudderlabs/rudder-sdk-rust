@@ -253,6 +253,9 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
     for i in &msg.batch {
         match i {
             BatchMessage::Identify(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone() );
+
                 batch.push(Rudderbatchmessage::Identify(Rudderidentify 
                 {
                     user_id: a_.user_id.clone(),
@@ -261,12 +264,15 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                     original_timestamp: original_timestamp,
                     sent_at: Some(sent_at),
                     integrations: a_.integrations.clone(),
-                    context: Some(modified_context.clone()),
+                    context: Some(final_context),
                     r#type: String::from("identify"),
                     channel: CHANNEL.to_string()
                 }));
             },           
             BatchMessage::Track(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone());
+
                 batch.push(Rudderbatchmessage::Track(
                     Ruddertrack {
                         user_id: a_.user_id.clone(),
@@ -276,13 +282,16 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         original_timestamp: original_timestamp,
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
-                        context: Some(modified_context.clone()),
+                        context: Some(final_context),
                         r#type: String::from("track"),
                         channel: CHANNEL.to_string()
                     }
                 ));
             },           
             BatchMessage::Page(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone());
+
                 batch.push(Rudderbatchmessage::Page(
                     Rudderpage {
                         user_id: a_.user_id.clone(),
@@ -292,13 +301,16 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         original_timestamp: original_timestamp,
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
-                        context: Some(modified_context.clone()),
+                        context: Some(final_context),
                         r#type: String::from("page"),
                         channel: CHANNEL.to_string()
                     }
                 ));
             },           
             BatchMessage::Screen(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone());
+
                 batch.push(Rudderbatchmessage::Screen(
                     Rudderscreen {
                         user_id: a_.user_id.clone(),
@@ -308,13 +320,16 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         original_timestamp: original_timestamp,
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
-                        context: Some(modified_context.clone()),
+                        context: Some(final_context),
                         r#type: String::from("screen"),
                         channel: CHANNEL.to_string()
                     }
                 ));
             },           
             BatchMessage::Group(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone());
+
                 batch.push(Rudderbatchmessage::Group(
                     Ruddergroup {
                         user_id: a_.user_id.clone(),
@@ -324,13 +339,16 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         original_timestamp: original_timestamp,
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
-                        context: Some(modified_context.clone()),
+                        context: Some(final_context),
                         r#type: String::from("group"),
                         channel: CHANNEL.to_string()
                     }
                 ));
             },           
             BatchMessage::Alias(a_) =>{
+                let mut final_context: Value = a_.context.clone().unwrap_or(json!({}));
+                merge(&mut final_context, modified_context.clone());
+
                 batch.push(Rudderbatchmessage::Alias(
                     Rudderalias {
                         user_id: a_.user_id.clone(),
@@ -339,7 +357,7 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
                         original_timestamp: original_timestamp,
                         sent_at: Some(sent_at),
                         integrations: a_.integrations.clone(),
-                        context: Some(modified_context.clone()),
+                        context: Some(final_context),
                         r#type: String::from("alias"),
                         channel: CHANNEL.to_string()
                     }

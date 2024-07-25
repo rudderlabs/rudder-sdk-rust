@@ -255,8 +255,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Identify(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Identify(Rudderidentify 
                 {
@@ -274,8 +274,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Track(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Track(
                     Ruddertrack {
@@ -295,8 +295,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Page(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Page(
                     Rudderpage {
@@ -316,8 +316,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Screen(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Screen(
                     Rudderscreen {
@@ -337,8 +337,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Group(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Group(
                     Ruddergroup {
@@ -358,8 +358,8 @@ pub fn parse_batch(msg:&Batch)-> Ruddermessage{
             BatchMessage::Alias(a_) =>{
                 let mut event_context: Value = a_.context.clone().unwrap_or(json!({}));
                 let mut final_context: Value = batch_context.clone();
-                merge(&mut event_context, default_context.clone());
                 merge(&mut final_context, event_context.clone());
+                merge(&mut final_context, default_context.clone());
 
                 batch.push(Rudderbatchmessage::Alias(
                     Rudderalias {

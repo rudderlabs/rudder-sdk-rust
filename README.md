@@ -1,6 +1,7 @@
 <p align="center"><a href="https://rudderstack.com"><img src="https://user-images.githubusercontent.com/59817155/126267034-ae9870b7-9137-4f45-be65-d621b055a972.png" alt="RudderStack - Customer Data Platform for Developers" height="50"/></a></p>
 <h1 align="center"></h1>
 <p align="center"><b>Customer Data Platform for Developers</b></p>
+<p align="center"><a href="https://deepwiki.com/rudderlabs/rudder-sdk-rust"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"/></a></p>
 <br/>
 
 # About RudderStack

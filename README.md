@@ -54,6 +54,25 @@ rudder_analytics.send(&Message::Track(Track {
 
 For more information on the supported calls, refer to the [**documentation**](https://docs.rudderstack.com/stream-sources/rudderstack-sdk-integration-guides/rudderstack-rust-sdk#sending-events-from-rudderstack).
 
+## Retry behavior
+
+By default, `send()` retries transient delivery failures, including HTTP 429, HTTP 5xx, connection errors, and timeouts. Retries use bounded exponential backoff and honor the standard `Retry-After` response header when the dataplane returns one.
+
+For latency-sensitive paths, use `send_once()` to preserve one-attempt behavior, or pass a custom `RetryConfig` to `send_with_retry_config()`.
+
+```rust
+use rudderanalytics::retry::RetryConfig;
+use std::time::Duration;
+
+let retry_config = RetryConfig {
+    max_retries: 1,
+    max_backoff_delay: Duration::from_secs(5),
+    ..Default::default()
+};
+
+rudder_analytics.send_with_retry_config(&message, &retry_config)?;
+```
+
 ## Contribute
 
 We would love to see you contribute to RudderStack. Get more information on how to contribute [**here**](CONTRIBUTING.md).

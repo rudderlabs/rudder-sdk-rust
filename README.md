@@ -73,6 +73,22 @@ let retry_config = RetryConfig {
 rudder_analytics.send_with_retry_config(&message, &retry_config)?;
 ```
 
+## Testing
+
+Run the default test suite:
+
+```bash
+cargo test --all
+```
+
+Retry behavior is covered by integration tests that use a local mock RudderStack HTTP API. These tests verify HTTP 429 retries, `Retry-After`, retry exhaustion, terminal 4xx responses, 5xx retries, and the expected `POST /v1/track` request shape.
+
+Run only the retry integration tests:
+
+```bash
+cargo test --test retry
+```
+
 ## Contribute
 
 We would love to see you contribute to RudderStack. Get more information on how to contribute [**here**](CONTRIBUTING.md).

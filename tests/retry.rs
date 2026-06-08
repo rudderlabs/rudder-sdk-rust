@@ -1,3 +1,4 @@
+use httpdate::fmt_http_date;
 use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::errors::Error as AnalyticsError;
 use rudderanalytics::message::{Message, Track};
@@ -7,12 +8,12 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime};
 
 struct TestResponse {
     status: u16,
     reason: &'static str,
-    headers: Vec<(&'static str, &'static str)>,
+    headers: Vec<(String, String)>,
 }
 
 struct TestServer {
@@ -184,13 +185,13 @@ fn response(status: u16, reason: &'static str) -> TestResponse {
 fn response_with_header(
     status: u16,
     reason: &'static str,
-    name: &'static str,
-    value: &'static str,
+    name: impl Into<String>,
+    value: impl Into<String>,
 ) -> TestResponse {
     TestResponse {
         status,
         reason,
-        headers: vec![(name, value)],
+        headers: vec![(name.into(), value.into())],
     }
 }
 
@@ -370,6 +371,21 @@ fn retries_common_5xx_until_success() {
 }
 
 #[test]
+fn retries_503_without_retry_after_using_normal_backoff() {
+    let server = start_server(vec![
+        response(503, "Service Unavailable"),
+        response(200, "OK"),
+    ]);
+    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+
+    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let request_count = server.wait();
+
+    assert!(result.is_ok());
+    assert_eq!(request_count, 2);
+}
+
+#[test]
 fn honors_retry_after_delay_seconds() {
     let server = start_server(vec![
         response_with_header(429, "Too Many Requests", "Retry-After", "1"),
@@ -387,6 +403,56 @@ fn honors_retry_after_delay_seconds() {
     assert!(
         elapsed >= Duration::from_secs(1),
         "expected Retry-After delay to be honored, elapsed {:?}",
+        elapsed
+    );
+}
+
+#[test]
+fn honors_retry_after_http_date() {
+    let retry_at = SystemTime::now() + Duration::from_secs(2);
+    let server = start_server(vec![
+        response_with_header(
+            429,
+            "Too Many Requests",
+            "Retry-After",
+            fmt_http_date(retry_at),
+        ),
+        response(200, "OK"),
+    ]);
+    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+
+    let start = Instant::now();
+    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let elapsed = start.elapsed();
+    let request_count = server.wait();
+
+    assert!(result.is_ok());
+    assert_eq!(request_count, 2);
+    assert!(
+        elapsed >= Duration::from_secs(1),
+        "expected HTTP-date Retry-After delay to be honored, elapsed {:?}",
+        elapsed
+    );
+}
+
+#[test]
+fn honors_retry_after_on_503() {
+    let server = start_server(vec![
+        response_with_header(503, "Service Unavailable", "Retry-After", "1"),
+        response(200, "OK"),
+    ]);
+    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+
+    let start = Instant::now();
+    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let elapsed = start.elapsed();
+    let request_count = server.wait();
+
+    assert!(result.is_ok());
+    assert_eq!(request_count, 2);
+    assert!(
+        elapsed >= Duration::from_secs(1),
+        "expected 503 Retry-After delay to be honored, elapsed {:?}",
         elapsed
     );
 }

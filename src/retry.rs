@@ -12,7 +12,7 @@ pub struct RetryConfig {
     pub enabled: bool,
     /// Number of retries after the initial request.
     pub max_retries: u32,
-    /// Base delay for exponential backoff.
+    /// Base delay for the first retry before jitter.
     pub base_delay: Duration,
     /// Maximum delay from the SDK's exponential backoff calculation.
     pub max_backoff_delay: Duration,
@@ -82,7 +82,8 @@ fn exponential_backoff(config: &RetryConfig, retry_number: u32) -> Duration {
         return Duration::from_secs(0);
     }
 
-    let multiplier = 1u32.checked_shl(retry_number).unwrap_or(u32::MAX);
+    let attempt_index = retry_number.saturating_sub(1);
+    let multiplier = 1u32.checked_shl(attempt_index).unwrap_or(u32::MAX);
     config
         .base_delay
         .checked_mul(multiplier)
@@ -188,6 +189,20 @@ mod tests {
     }
 
     #[test]
+    fn first_retry_uses_base_delay() {
+        let config = RetryConfig {
+            base_delay: Duration::from_millis(100),
+            max_backoff_delay: Duration::from_secs(30),
+            jitter_ratio: 0.0,
+            ..Default::default()
+        };
+
+        assert_eq!(retry_delay(&config, 1, None), Duration::from_millis(100));
+        assert_eq!(retry_delay(&config, 2, None), Duration::from_millis(200));
+        assert_eq!(retry_delay(&config, 3, None), Duration::from_millis(400));
+    }
+
+    #[test]
     fn retry_after_is_floor_on_backoff() {
         let config = RetryConfig {
             base_delay: Duration::from_millis(100),
@@ -217,7 +232,7 @@ mod tests {
 
         assert_eq!(
             retry_delay(&config, 1, Some(&headers)),
-            Duration::from_secs(20)
+            Duration::from_secs(10)
         );
     }
 

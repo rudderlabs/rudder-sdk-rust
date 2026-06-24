@@ -205,6 +205,14 @@ fn retry_config(max_retries: u32) -> RetryConfig {
     }
 }
 
+fn analytics_with_retry_config(server_url: String, retry_config: RetryConfig) -> RudderAnalytics {
+    RudderAnalytics::load_with_retry_config("write-key".to_string(), server_url, retry_config)
+}
+
+fn analytics_with_retries(server_url: String, max_retries: u32) -> RudderAnalytics {
+    analytics_with_retry_config(server_url, retry_config(max_retries))
+}
+
 fn track_message() -> Message {
     Message::Track(Track {
         user_id: Some("user-1".to_string()),
@@ -241,9 +249,9 @@ fn retries_429_until_success() {
         response(429, "Too Many Requests"),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let request_count = server.wait();
 
     assert!(result.is_ok());
@@ -256,12 +264,9 @@ fn retries_against_mock_rudderstack_http_api() {
         response(429, "Too Many Requests"),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
-    let result = analytics.send_with_retry_config(
-        &track_message_with_event("Retry Contract Event"),
-        &retry_config(3),
-    );
+    let result = analytics.send(&track_message_with_event("Retry Contract Event"));
     let observation = server.wait_with_requests();
 
     assert!(result.is_ok());
@@ -299,11 +304,11 @@ fn retries_against_mock_rudderstack_http_api() {
 }
 
 #[test]
-fn send_once_does_not_retry_429() {
+fn disabled_retry_config_does_not_retry_429() {
     let server = start_server(vec![response(429, "Too Many Requests")]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retry_config(server.url.clone(), RetryConfig::disabled());
 
-    let result = analytics.send_once(&track_message());
+    let result = analytics.send(&track_message());
     let request_count = server.wait();
 
     assert!(result.is_err());
@@ -313,9 +318,9 @@ fn send_once_does_not_retry_429() {
 #[test]
 fn does_not_retry_non_retryable_400() {
     let server = start_server(vec![response(400, "Bad Request")]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let request_count = server.wait();
 
     assert!(result.is_err());
@@ -326,9 +331,9 @@ fn does_not_retry_non_retryable_400() {
 fn does_not_retry_terminal_4xx_statuses() {
     for status in [401, 403, 404, 413, 422] {
         let server = start_server(vec![response(status, "Terminal Client Error")]);
-        let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+        let analytics = analytics_with_retries(server.url.clone(), 3);
 
-        let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+        let result = analytics.send(&track_message());
         let request_count = server.wait();
 
         assert!(result.is_err(), "expected status {} to fail", status);
@@ -342,9 +347,9 @@ fn returns_error_after_retry_budget_is_exhausted() {
         response(429, "Too Many Requests"),
         response(429, "Too Many Requests"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 1);
 
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(1));
+    let result = analytics.send(&track_message());
     let request_count = server.wait();
 
     match result {
@@ -360,9 +365,9 @@ fn returns_error_after_retry_budget_is_exhausted() {
 fn retries_common_5xx_until_success() {
     for status in [500, 502, 503, 504] {
         let server = start_server(vec![response(status, "Server Error"), response(200, "OK")]);
-        let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+        let analytics = analytics_with_retries(server.url.clone(), 3);
 
-        let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+        let result = analytics.send(&track_message());
         let request_count = server.wait();
 
         assert!(result.is_ok(), "expected status {} to retry", status);
@@ -376,9 +381,9 @@ fn retries_503_without_retry_after_using_normal_backoff() {
         response(503, "Service Unavailable"),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let request_count = server.wait();
 
     assert!(result.is_ok());
@@ -391,10 +396,10 @@ fn honors_retry_after_delay_seconds() {
         response_with_header(429, "Too Many Requests", "Retry-After", "1"),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
     let start = Instant::now();
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let elapsed = start.elapsed();
     let request_count = server.wait();
 
@@ -419,10 +424,10 @@ fn honors_retry_after_http_date() {
         ),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
     let start = Instant::now();
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let elapsed = start.elapsed();
     let request_count = server.wait();
 
@@ -441,10 +446,10 @@ fn honors_retry_after_on_503() {
         response_with_header(503, "Service Unavailable", "Retry-After", "1"),
         response(200, "OK"),
     ]);
-    let analytics = RudderAnalytics::load("write-key".to_string(), server.url.clone());
+    let analytics = analytics_with_retries(server.url.clone(), 3);
 
     let start = Instant::now();
-    let result = analytics.send_with_retry_config(&track_message(), &retry_config(3));
+    let result = analytics.send(&track_message());
     let elapsed = start.elapsed();
     let request_count = server.wait();
 

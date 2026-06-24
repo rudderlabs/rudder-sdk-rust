@@ -58,9 +58,10 @@ For more information on the supported calls, refer to the [**documentation**](ht
 
 By default, `send()` retries transient delivery failures, including HTTP 429, HTTP 5xx, connection errors, and timeouts. Retries use bounded exponential backoff and honor the standard `Retry-After` response header when the dataplane returns one.
 
-For latency-sensitive paths, use `send_once()` to preserve one-attempt behavior, or pass a custom `RetryConfig` to `send_with_retry_config()`.
+To customize retry behavior, configure retries when initializing the client.
 
 ```rust
+use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::retry::RetryConfig;
 use std::time::Duration;
 
@@ -70,7 +71,11 @@ let retry_config = RetryConfig {
     ..Default::default()
 };
 
-rudder_analytics.send_with_retry_config(&message, &retry_config)?;
+let rudder_analytics = RudderAnalytics::load_with_retry_config(
+    "YOUR_WRITE_KEY".to_string(),
+    "YOUR_DATA_PLANE_URL".to_string(),
+    retry_config,
+);
 ```
 
 ## Testing

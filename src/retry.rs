@@ -18,8 +18,6 @@ pub struct RetryConfig {
     pub max_backoff_delay: Duration,
     /// Jitter ratio added to the selected delay. `0.2` means up to 20%.
     pub jitter_ratio: f64,
-    /// Whether to honor the standard Retry-After response header.
-    pub respect_retry_after: bool,
 }
 
 impl Default for RetryConfig {
@@ -30,7 +28,6 @@ impl Default for RetryConfig {
             base_delay: Duration::from_millis(100),
             max_backoff_delay: Duration::from_secs(30),
             jitter_ratio: 0.2,
-            respect_retry_after: true,
         }
     }
 }
@@ -44,7 +41,6 @@ impl RetryConfig {
             base_delay: Duration::from_millis(100),
             max_backoff_delay: Duration::from_secs(30),
             jitter_ratio: 0.0,
-            respect_retry_after: false,
         }
     }
 }
@@ -63,13 +59,9 @@ pub(crate) fn retry_delay(
     headers: Option<&HeaderMap>,
 ) -> Duration {
     let backoff_delay = exponential_backoff(config, retry_number);
-    let retry_after_delay = if config.respect_retry_after {
-        headers
-            .and_then(parse_retry_after)
-            .unwrap_or_else(|| Duration::from_secs(0))
-    } else {
-        Duration::from_secs(0)
-    };
+    let retry_after_delay = headers
+        .and_then(parse_retry_after)
+        .unwrap_or_else(|| Duration::from_secs(0));
 
     add_jitter(
         std::cmp::max(backoff_delay, retry_after_delay),

@@ -15,11 +15,21 @@ pub struct RudderAnalytics {
     pub write_key: String,
     pub data_plane_url: String,
     pub client: reqwest::blocking::Client,
+    pub retry_config: RetryConfig,
 }
 
 impl RudderAnalytics {
     // Function to initialize the Rudderanalytics client with write-key and data-plane-url
     pub fn load(write_key: String, data_plane_url: String) -> RudderAnalytics {
+        Self::load_with_retry_config(write_key, data_plane_url, RetryConfig::default())
+    }
+
+    /// Initialize the Rudderanalytics client with a custom retry configuration.
+    pub fn load_with_retry_config(
+        write_key: String,
+        data_plane_url: String,
+        retry_config: RetryConfig,
+    ) -> RudderAnalytics {
         RudderAnalytics {
             write_key,
             data_plane_url,
@@ -27,6 +37,7 @@ impl RudderAnalytics {
                 .connect_timeout(Duration::new(10, 0))
                 .build()
                 .unwrap(),
+            retry_config,
         }
     }
 
@@ -34,22 +45,9 @@ impl RudderAnalytics {
     // and after validation
     // modify it to Ruddermessage format and send the event to data plane url
     pub fn send(&self, msg: &Message) -> Result<(), AnalyticsError> {
-        self.send_with_retry_config(msg, &RetryConfig::default())
-    }
-
-    /// Send a message once, without retrying transient failures.
-    pub fn send_once(&self, msg: &Message) -> Result<(), AnalyticsError> {
-        self.send_with_retry_config(msg, &RetryConfig::disabled())
-    }
-
-    /// Send a message with the supplied retry configuration.
-    pub fn send_with_retry_config(
-        &self,
-        msg: &Message,
-        retry_config: &RetryConfig,
-    ) -> Result<(), AnalyticsError> {
         let path = validate_and_path(msg)?;
         let rudder_message = parse_rudder_message(msg);
+        let retry_config = &self.retry_config;
         let mut retries = 0;
 
         debug!("rudder_message: {:#?}", rudder_message);

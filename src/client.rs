@@ -78,10 +78,10 @@ impl RudderAnalytics {
                     retries += 1;
                     let delay = retry_delay(retry_config, retries, Some(res.headers()));
                     debug!(
-                        "retrying RudderStack request after status {} in {:?} (attempt {} of {})",
+                        "retrying request after status {} in {:?} (attempt {} of {})",
                         status,
                         delay,
-                        retries + 1,
+                        attempt,
                         retry_config.max_retries + 1
                     );
                     sleep_retry_delay(delay);
@@ -98,9 +98,9 @@ impl RudderAnalytics {
                     retries += 1;
                     let delay = retry_delay(retry_config, retries, None);
                     debug!(
-                        "retrying RudderStack request after transport error in {:?} (attempt {} of {})",
+                        "retrying request after transport error in {:?} (attempt {} of {})",
                         delay,
-                        retries + 1,
+                        attempt,
                         retry_config.max_retries + 1
                     );
                     sleep_retry_delay(delay);

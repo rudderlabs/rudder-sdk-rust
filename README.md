@@ -54,6 +54,46 @@ rudder_analytics.send(&Message::Track(Track {
 
 For more information on the supported calls, refer to the [**documentation**](https://docs.rudderstack.com/stream-sources/rudderstack-sdk-integration-guides/rudderstack-rust-sdk#sending-events-from-rudderstack).
 
+## Retry behavior
+
+By default, `send()` retries transient delivery failures, including HTTP 429, HTTP 5xx, connection errors, and timeouts. Retries use bounded exponential backoff and honor the standard `Retry-After` response header when the dataplane returns one.
+
+To customize retry behavior, configure retries when initializing the client.
+
+```rust
+use rudderanalytics::client::RudderAnalytics;
+use rudderanalytics::retry::RetryConfig;
+use std::time::Duration;
+
+let retry_config = RetryConfig {
+    max_retries: 1,
+    max_backoff_delay: Duration::from_secs(5),
+    ..Default::default()
+};
+
+let rudder_analytics = RudderAnalytics::load_with_retry_config(
+    "YOUR_WRITE_KEY".to_string(),
+    "YOUR_DATA_PLANE_URL".to_string(),
+    retry_config,
+);
+```
+
+## Testing
+
+Run the default test suite:
+
+```bash
+cargo test --all
+```
+
+Retry behavior is covered by integration tests that use a local mock RudderStack HTTP API. These tests verify HTTP 429 retries, `Retry-After`, retry exhaustion, terminal 4xx responses, 5xx retries, and the expected `POST /v1/track` request shape.
+
+Run only the retry integration tests:
+
+```bash
+cargo test --test retry
+```
+
 ## Contribute
 
 We would love to see you contribute to RudderStack. Get more information on how to contribute [**here**](CONTRIBUTING.md).

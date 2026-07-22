@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/rudderlabs/rudder-sdk-rust/compare/v2.0.0...v2.0.1) (2026-07-22)
+
+
+### Miscellaneous
+
+* add trusted crates.io publishing workflow ([#36](https://github.com/rudderlabs/rudder-sdk-rust/issues/36)) ([fe44c82](https://github.com/rudderlabs/rudder-sdk-rust/commit/fe44c82f80547f18db087ecb61016a9dc1eeebd6))
+
 ## [2.0.0](https://github.com/rudderlabs/rudder-sdk-rust/compare/v1.1.4...v2.0.0) (2026-07-16)
 
 

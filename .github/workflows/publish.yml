@@ -35,13 +35,16 @@ jobs:
           persist-credentials: false
 
       - name: Validate release tag matches crate version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          set -euo pipefail
+
           crate_version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')"
           expected_tag="v${crate_version}"
-          release_tag="${{ github.event.release.tag_name }}"
 
-          if [ "${release_tag}" != "${expected_tag}" ]; then
-            echo "Release tag ${release_tag} does not match Cargo.toml package.version ${crate_version}." >&2
+          if [ "${RELEASE_TAG}" != "${expected_tag}" ]; then
+            echo "Release tag ${RELEASE_TAG} does not match Cargo.toml package.version ${crate_version}." >&2
             echo "Expected release tag: ${expected_tag}" >&2
             exit 1
           fi

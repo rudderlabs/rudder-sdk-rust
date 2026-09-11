@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2](https://github.com/rudderlabs/rudder-sdk-rust/compare/v2.0.1...v2.0.2) (2026-09-11)
+
+
+### Miscellaneous
+
+* sdk-5436 update codeowners ([#40](https://github.com/rudderlabs/rudder-sdk-rust/issues/40)) ([22e5685](https://github.com/rudderlabs/rudder-sdk-rust/commit/22e5685b2790aa839a6b9e276b341b835ad9c1c4))
+* update readme with new branding images ([#39](https://github.com/rudderlabs/rudder-sdk-rust/issues/39)) ([7af2c1e](https://github.com/rudderlabs/rudder-sdk-rust/commit/7af2c1e7c24d37fb6a282c711e2c5247c2c07a04))
+
 ## [2.0.1](https://github.com/rudderlabs/rudder-sdk-rust/compare/v2.0.0...v2.0.1) (2026-07-22)
 
 

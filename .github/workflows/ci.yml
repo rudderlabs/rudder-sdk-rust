@@ -27,3 +27,24 @@ jobs:
 
       - name: Run tests
         run: cargo test --all-features
+
+  release-workflow-tests:
+    name: Release workflow tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # actions/checkout
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run release workflow tests
+        run: |
+          python3 -m venv "$RUNNER_TEMP/workflow-tests-venv"
+          "$RUNNER_TEMP/workflow-tests-venv/bin/python" -m pip install 'PyYAML==6.0.3'
+          "$RUNNER_TEMP/workflow-tests-venv/bin/python" -m unittest discover -s tests -p 'test_*.py'

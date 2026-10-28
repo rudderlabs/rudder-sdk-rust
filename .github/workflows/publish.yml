@@ -68,9 +68,9 @@ jobs:
       RELEASE_PRIVATE_KEY: ${{ secrets.RELEASE_PRIVATE_KEY }}
 
   notify-release:
-    name: Report published crate acceptance
+    name: Report final release outcome
     needs: [publish, published-e2e]
-    if: ${{ always() && needs.publish.result == 'success' }}
+    if: ${{ always() && github.event_name == 'release' && !github.event.release.prerelease && !github.event.release.draft && github.ref == format('refs/tags/{0}', github.event.release.tag_name) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
@@ -80,17 +80,41 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Classify final release outcome
+        id: outcome
+        env:
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Tag $RELEASE_TAG is not a stable release version; no release notification was sent." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [[ "$PUBLISH_RESULT" == success && "$ACCEPTANCE_RESULT" == success ]]; then
+            headline="Rust SDK $RELEASE_TAG accepted"
+            verdict='Exact public crate, full E2E delivery, and cleanup: accepted'
+            summary='Published crate accepted: exact registry package, full E2E delivery, and cleanup passed.'
+          elif [[ "$PUBLISH_RESULT" == success ]]; then
+            headline="Rust SDK $RELEASE_TAG published; validation failed or incomplete"
+            verdict="Exact public crate/full E2E delivery/cleanup: $ACCEPTANCE_RESULT; no automatic unpublish"
+            summary="Crate published; validation failed or incomplete (acceptance: $ACCEPTANCE_RESULT). No automatic unpublish."
+          else
+            headline="Rust SDK $RELEASE_TAG publication failed or unconfirmed"
+            verdict="Publication job: $PUBLISH_RESULT; registry state unconfirmed; full E2E acceptance not established"
+            summary="Publication failed or unconfirmed (publish: $PUBLISH_RESULT; acceptance: $ACCEPTANCE_RESULT). Registry state is unconfirmed."
+          fi
+          echo "$summary" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "headline=$headline"
+            echo "verdict=$verdict"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Require existing Slack configuration
         env:
-          ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
         run: |
-          if [[ "$ACCEPTANCE_RESULT" == success ]]; then
-            echo 'Published crate accepted: exact registry package, full E2E delivery, and cleanup passed.' >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Crate published; validation failed or incomplete (acceptance: $ACCEPTANCE_RESULT). No automatic unpublish." >> "$GITHUB_STEP_SUMMARY"
-          fi
           if [[ -z "$SLACK_BOT_TOKEN" || -z "$SLACK_CHANNEL_ID" ]]; then
             echo 'Missing SLACK_BOT_TOKEN or SLACK_RELEASE_CHANNEL_ID; release acceptance was not announced.' | tee -a "$GITHUB_STEP_SUMMARY" >&2
             exit 1
@@ -98,27 +122,29 @@ jobs:
 
       - name: Prepare short release message and detail thread
         env:
+          HEADLINE: ${{ steps.outcome.outputs.headline }}
+          VERDICT: ${{ steps.outcome.outputs.verdict }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
           ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
         run: |
           version="${RELEASE_TAG#v}"
           date_utc="$(date -u +%F)"
-          if [[ "$ACCEPTANCE_RESULT" == success ]]; then
-            headline="Rust SDK $RELEASE_TAG accepted"
-            verdict='Exact public crate, full E2E delivery, and cleanup: accepted'
+          if [[ "$PUBLISH_RESULT" == success ]]; then
+            registry_label='Crate'
           else
-            headline="Rust SDK $RELEASE_TAG published; validation failed or incomplete"
-            verdict="Exact public crate/full E2E delivery/cleanup: $ACCEPTANCE_RESULT; no automatic unpublish"
+            registry_label='Registry lookup (publication unconfirmed)'
           fi
-          root="$headline · $date_utc"$'\n''CC: <!subteam^S0555JBV36D> <!subteam^S03SHJ20350>'
+          root="$HEADLINE · $date_utc"$'\n''CC: <!subteam^S0555JBV36D> <!subteam^S03SHJ20350>'
           jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "$root" \
             '{channel: $channel, text: $text, unfurl_links: false, unfurl_media: false}' \
             > "$RUNNER_TEMP/release-root.json"
           detail="*Release:* <https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG|$RELEASE_TAG>"$'\n'
-          detail+="*Crate:* <https://crates.io/crates/rudderanalytics/$version|rudderanalytics $version>"$'\n'
-          detail+="*Publication:* success"$'\n'
-          detail+="*Acceptance:* $verdict"$'\n'
+          detail+="*$registry_label:* <https://crates.io/crates/rudderanalytics/$version|rudderanalytics $version>"$'\n'
+          detail+="*Publication job:* $PUBLISH_RESULT"$'\n'
+          detail+="*Acceptance job:* $ACCEPTANCE_RESULT"$'\n'
+          detail+="*Result:* $VERDICT"$'\n'
           detail+="*Run:* <https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|workflow and check results>"
           jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "$detail" \
             '{channel: $channel, text: $text, reply_broadcast: false, unfurl_links: false, unfurl_media: false}' \

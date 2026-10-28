@@ -26,34 +26,6 @@ Do you have an improvement?
 5. Your branch may be merged once all configured checks pass, including:
    - A review from appropriate maintainers
 
-## Rust SDK releases
-
-A published, stable `vX.Y.Z` GitHub release triggers **Publish to crates.io** once.
-The workflow verifies the release tag, checks out that exact commit, compares
-Cargo metadata with the tag, rechecks the tag before publishing, and publishes
-`rudderanalytics` via crates.io OIDC. After publication it requests the **full**
-central server-SDK E2E suite against that exact public registry version and the
-verified release commit. The central validator owns registry propagation,
-installation without local overrides, live locks and cleanup. Native Rust tests
-(`cargo test --all-features`) run in CI; they are not a full source-candidate E2E.
-
-A successful publish with failed or cancelled full acceptance is **published but
-not accepted**. Check the exact central run linked in the acceptance job, resolve
-the issue, and do not announce completion or unpublish automatically. To retry
-validation **without republishing or creating a tag**, dispatch **Publish to
-crates.io** from `master` with `version` (e.g. `2.0.1`, no `v`) and `commit`
-(the full 40-character SHA of that version's existing published release tag).
-The workflow rejects mismatched tags/versions/commits and other workflow refs;
-there is no fallback to the latest package. The protected `release` environment
-must permit both the published tag and the `master` retry. The release App must
-have Actions write on `rudder-sdk-e2e-tests` for acceptance.
-
-Published-package support is dependent on SDK-5961 (central Rust mode) and
-SDK-5962 (reviewed shared-action `package-version` and release SHA inputs).
-Until those are on main and the fixed action pin in `publish.yml` is replaced,
-acceptance intentionally fails closed. This implementation has not been live
-validated: first hosted acceptance is deferred to the next normal release.
-
 ## Committing
 
 We prefer squash or rebase commits so that all changes from a branch are
@@ -73,3 +45,7 @@ We look forward to your feedback on improving this project.
 
 If you have a question about rudder or have encountered problems using it,
 start by asking a question on [Slack][slack].
+
+## Published-package E2E acceptance
+
+Release completion also requires the exact public package to pass full E2E delivery and cleanup checks. See [release acceptance and validation-only retries](.github/RELEASE_E2E.md). Hosted acceptance remains pending the next normal release.

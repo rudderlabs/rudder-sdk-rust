@@ -21,9 +21,32 @@ jobs:
 
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Show Rust toolchain
         run: rustc --version && cargo --version
 
       - name: Run tests
         run: cargo test --all-features
+
+  release-workflow-tests:
+    name: Release workflow tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test release workflow contract
+        run: |
+          python3 -m venv "$RUNNER_TEMP/workflow-tests"
+          "$RUNNER_TEMP/workflow-tests/bin/pip" install 'PyYAML==6.0.3'
+          "$RUNNER_TEMP/workflow-tests/bin/python" -m unittest discover -s tests -p 'test_*.py'

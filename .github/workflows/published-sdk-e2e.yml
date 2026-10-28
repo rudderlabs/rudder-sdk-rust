@@ -19,7 +19,7 @@ permissions:
 # Do not cancel live validation; the central workflow owns locking and cleanup.
 jobs:
   validate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
       - name: Harden the runner (Audit all outbound calls)

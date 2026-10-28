@@ -40,6 +40,8 @@ class ReleaseWorkflowTest(unittest.TestCase):
         acceptance = publish["published-e2e"]
         self.assertEqual(acceptance["needs"], "publish")
         self.assertEqual(acceptance["with"]["package-version"], "${{ github.event.release.tag_name }}")
+        self.assertEqual(acceptance["permissions"], {"contents": "read"})
+        self.assertEqual(acceptance["secrets"], {"RELEASE_PRIVATE_KEY": "${{ secrets.RELEASE_PRIVATE_KEY }}"})
         notify = publish["notify-release"]
         self.assertEqual(notify["needs"], ["publish", "published-e2e"])
         self.assertIn("always()", notify["if"])
@@ -51,26 +53,45 @@ class ReleaseWorkflowTest(unittest.TestCase):
         self.assertIn("workflow_dispatch", retry["on"])
         self.assertEqual(retry["jobs"]["validate"]["runs-on"], "ubuntu-latest")
         self.assertEqual(step(retry["jobs"]["validate"], "Validate the exact public package, delivery, and cleanup")["with"]["suite"], "full")
+        for output in ("run-id", "run-url"):
+            self.assertEqual(retry["jobs"]["validate"]["outputs"][output], f"${{{{ steps.e2e.outputs.{output} }}}}")
+            self.assertEqual(retry["on"]["workflow_call"]["outputs"][output]["value"], f"${{{{ jobs.validate.outputs.{output} }}}}")
+        self.assertEqual(retry["jobs"]["validate"]["timeout-minutes"], "55")
+        self.assertEqual(retry["permissions"], {"contents": "read"})
+        self.assertIn("github.event.release.tag_name || github.ref_name", str(retry["jobs"]["validate"]))
+        self.assertNotIn("checkout", str(retry))
         self.assertNotIn("slackapi/slack-github-action", str(retry))
         self.assertNotIn("cargo publish", str(retry))
 
-    def test_stable_tag_validator_rejects_prerelease_and_mismatch(self):
+    def test_stable_tag_validator_rejects_prerelease_malformed_and_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:
             cargo = Path(temp) / "cargo"
-            cargo.write_text("#!/bin/sh\nprintf '%s\\n' '{\"packages\":[{\"version\":\"1.2.3\"}]}'\n")
+            cargo.write_text("#!/bin/sh\nprintf '{\"packages\":[{\"version\":\"%s\"}]}\\n' \"$CRATE_VERSION\"\n")
             cargo.chmod(0o755)
             env = os.environ.copy()
             env["PATH"] = f"{temp}:{env['PATH']}"
-            for tag, expected in [("v1.2.3", 0), ("v1.2.3-rc.1", 1), ("v1.2.4", 1)]:
-                with self.subTest(tag=tag):
+            cases = [
+                ("1.2.3", "v1.2.3", True),
+                ("0.0.0", "v0.0.0", True),
+                ("1.2.3", "v1.2.3-rc.1", False),
+                ("1.2.3-rc.1", "v1.2.3-rc.1", False),
+                ("1.2.3+build.1", "v1.2.3+build.1", False),
+                ("1.2.3", "v1.2.4", False),
+                ("1.2.3", "1.2.3", False),
+                ("1.2.3", "v01.2.3", False),
+                ("1.2.3", "v1.2", False),
+                ("1.2.3", "master", False),
+            ]
+            for crate_version, tag, accepted in cases:
+                with self.subTest(crate_version=crate_version, tag=tag):
                     result = subprocess.run(
                         ["bash", "scripts/validate-release-tag.sh"],
                         cwd=ROOT,
-                        env={**env, "RELEASE_TAG": tag},
+                        env={**env, "CRATE_VERSION": crate_version, "RELEASE_TAG": tag},
                         capture_output=True,
                         text=True,
                     )
-                    self.assertEqual(result.returncode == 0, expected == 0, result.stderr)
+                    self.assertEqual(result.returncode == 0, accepted, result.stderr)
 
     def test_slack_root_and_thread_contract_for_final_outcomes(self):
         job = workflow(".github/workflows/publish.yml")["jobs"]["notify-release"]
@@ -129,6 +150,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
                     self.assertIn(f"*Publication job:* {publish_result}", detail["text"])
                     self.assertIn(f"*Acceptance job:* {acceptance_result}", detail["text"])
                     self.assertIn("*Run:*", detail["text"])
+                    self.assertNotIn("*Central validation:*", detail["text"])
                     self.assertFalse(root["unfurl_links"])
                     self.assertFalse(root["unfurl_media"])
                     self.assertFalse(detail["unfurl_links"])
@@ -139,6 +161,24 @@ class ReleaseWorkflowTest(unittest.TestCase):
                         self.assertIn("Registry lookup (publication unconfirmed)", detail["text"])
                         self.assertIn("Registry state is unconfirmed", summary.read_text())
                         self.assertNotIn("Crate published", summary.read_text())
+
+            subprocess.run(
+                ["bash", "-e", "-o", "pipefail", "-c", prepare],
+                env={
+                    **env,
+                    "PUBLISH_RESULT": "success",
+                    "ACCEPTANCE_RESULT": "success",
+                    "ACCEPTANCE_URL": "https://github.com/rudderlabs/rudder-sdk-e2e-tests/actions/runs/456",
+                    "HEADLINE": "Rust SDK v1.2.3 accepted",
+                    "VERDICT": "Accepted",
+                },
+                check=True,
+            )
+            detail = json.loads((Path(temp) / "release-detail.json").read_text())
+            self.assertIn(
+                "*Central validation:* <https://github.com/rudderlabs/rudder-sdk-e2e-tests/actions/runs/456|exact package E2E results>",
+                detail["text"],
+            )
 
     def test_missing_slack_configuration_is_reported_without_sending(self):
         job = workflow(".github/workflows/publish.yml")["jobs"]["notify-release"]

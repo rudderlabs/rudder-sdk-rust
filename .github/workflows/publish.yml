@@ -126,6 +126,7 @@ jobs:
           VERDICT: ${{ steps.outcome.outputs.verdict }}
           PUBLISH_RESULT: ${{ needs.publish.result }}
           ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
+          ACCEPTANCE_URL: ${{ needs.published-e2e.outputs.run-url }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
         run: |
@@ -146,6 +147,9 @@ jobs:
           detail+="*Acceptance job:* $ACCEPTANCE_RESULT"$'\n'
           detail+="*Result:* $VERDICT"$'\n'
           detail+="*Run:* <https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|workflow and check results>"
+          if [[ -n "$ACCEPTANCE_URL" ]]; then
+            detail+=$'\n'"*Central validation:* <$ACCEPTANCE_URL|exact package E2E results>"
+          fi
           jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "$detail" \
             '{channel: $channel, text: $text, reply_broadcast: false, unfurl_links: false, unfurl_media: false}' \
             > "$RUNNER_TEMP/release-detail.json"

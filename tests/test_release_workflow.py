@@ -49,8 +49,11 @@ class ReleaseWorkflowTest(unittest.TestCase):
         self.assertEqual(notify["permissions"], {})
         retry = workflow(".github/workflows/published-sdk-e2e.yml")
         self.assertIn("workflow_dispatch", retry["on"])
-        self.assertEqual(retry["jobs"]["validate"]["runs-on"], "ubuntu-latest")
-        self.assertEqual(step(retry["jobs"]["validate"], "Validate the exact public package, delivery, and cleanup")["with"]["suite"], "full")
+        validator = retry["jobs"]["validate"]
+        self.assertNotIn("steps", validator)
+        self.assertRegex(validator["uses"], r"^rudderlabs/github-action-sdk-e2e/\.github/workflows/published-sdk-e2e\.yml@[0-9a-f]{40}$")
+        self.assertEqual(validator["with"]["package-version"], "${{ inputs.package-version || github.ref_name }}")
+        self.assertEqual(validator["secrets"], {"RELEASE_PRIVATE_KEY": "${{ secrets.RELEASE_PRIVATE_KEY }}"})
         self.assertNotIn("slackapi/slack-github-action", str(retry))
         self.assertNotIn("cargo publish", str(retry))
 

@@ -70,7 +70,7 @@ jobs:
   notify-release:
     name: Report final release outcome
     needs: [publish, published-e2e]
-    if: ${{ always() && github.event_name == 'release' && !github.event.release.prerelease && !github.event.release.draft && github.ref == format('refs/tags/{0}', github.event.release.tag_name) }}
+    if: ${{ always() && github.run_attempt == '1' && github.event_name == 'release' && !github.event.release.prerelease && !github.event.release.draft && github.ref == format('refs/tags/{0}', github.event.release.tag_name) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
@@ -167,8 +167,9 @@ jobs:
       - name: Require release thread timestamp
         env:
           ROOT_TS: ${{ steps.root.outputs.ts }}
+          ROOT_OK: ${{ steps.root.outputs.ok }}
         run: |
-          if [[ -z "$ROOT_TS" ]]; then
+          if [[ "$ROOT_OK" != true || ! "$ROOT_TS" =~ ^[0-9]+\.[0-9]+$ ]]; then
             echo 'Slack root message returned no thread timestamp.' | tee -a "$GITHUB_STEP_SUMMARY" >&2
             exit 1
           fi

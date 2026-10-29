@@ -3,30 +3,24 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     open-pull-requests-limit: 0
     cooldown:
       default-days: 7
-      exclude: ["rudderlabs/*"]
     groups:
-      github-actions-security:
-        applies-to: security-updates
-        patterns: ["*"]
-      github-actions-versions:
+      github-actions-minor-patch:
         applies-to: version-updates
         patterns: ["*"]
+        update-types: ["minor", "patch"]
     labels: ["dependencies", "github-actions"]
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     open-pull-requests-limit: 0
     cooldown:
       default-days: 7
     groups:
-      cargo-security:
-        applies-to: security-updates
-        patterns: ["*"]
       cargo-minor-patch:
         applies-to: version-updates
         patterns: ["*"]

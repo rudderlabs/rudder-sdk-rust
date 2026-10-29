@@ -13,6 +13,10 @@ jobs:
   test:
     name: Rust tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        features: [default-tls, rustls-tls, "default-tls,cli", "rustls-tls,cli"]
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -28,7 +32,7 @@ jobs:
         run: rustc --version && cargo --version
 
       - name: Run tests
-        run: cargo test --all-features
+        run: cargo test --locked --no-default-features --features "${{ matrix.features }}"
 
   release-workflow-tests:
     name: Release workflow tests

@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -44,12 +45,14 @@ class ReleaseWorkflowTest(unittest.TestCase):
         self.assertEqual(notify["needs"], ["publish", "published-e2e"])
         self.assertIn("always()", notify["if"])
         self.assertIn("github.event_name == 'release'", notify["if"])
+        self.assertIn("github.run_attempt == '1'", notify["if"])
         self.assertIn("refs/tags/{0}", notify["if"])
         self.assertNotIn("needs.publish.result", notify["if"])
         self.assertEqual(notify["permissions"], {})
         retry = workflow(".github/workflows/published-sdk-e2e.yml")
         self.assertIn("workflow_dispatch", retry["on"])
         validator = retry["jobs"]["validate"]
+        self.assertIn("@b6de40cc65abe8ee6c6593aac1787aea746b671f", validator["uses"])
         self.assertNotIn("steps", validator)
         self.assertRegex(validator["uses"], r"^rudderlabs/github-action-sdk-e2e/\.github/workflows/published-sdk-e2e\.yml@[0-9a-f]{40}$")
         self.assertEqual(validator["with"]["package-version"], "${{ inputs.package-version || github.ref_name }}")
@@ -57,13 +60,14 @@ class ReleaseWorkflowTest(unittest.TestCase):
         self.assertNotIn("slackapi/slack-github-action", str(retry))
         self.assertNotIn("cargo publish", str(retry))
 
+    @unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "workflow scripts need optional shell tools")
     def test_stable_tag_validator_rejects_prerelease_and_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:
             cargo = Path(temp) / "cargo"
             cargo.write_text("#!/bin/sh\nprintf '%s\\n' '{\"packages\":[{\"version\":\"1.2.3\"}]}'\n")
             cargo.chmod(0o755)
             env = os.environ.copy()
-            env["PATH"] = f"{temp}:{env['PATH']}"
+            env["PATH"] = temp + os.pathsep + env["PATH"]
             for tag, expected in [("v1.2.3", 0), ("v1.2.3-rc.1", 1), ("v1.2.4", 1)]:
                 with self.subTest(tag=tag):
                     result = subprocess.run(
@@ -75,6 +79,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
                     )
                     self.assertEqual(result.returncode == 0, expected == 0, result.stderr)
 
+    @unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "workflow scripts need optional shell tools")
     def test_slack_root_and_thread_contract_for_final_outcomes(self):
         job = workflow(".github/workflows/publish.yml")["jobs"]["notify-release"]
         steps = job["steps"]
@@ -143,6 +148,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
                         self.assertIn("Registry state is unconfirmed", summary.read_text())
                         self.assertNotIn("Crate published", summary.read_text())
 
+    @unittest.skipUnless(shutil.which("bash"), "workflow scripts need optional shell tools")
     def test_missing_slack_configuration_is_reported_without_sending(self):
         job = workflow(".github/workflows/publish.yml")["jobs"]["notify-release"]
         check = step(job, "Require existing Slack configuration")["run"]
@@ -157,6 +163,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Missing SLACK_BOT_TOKEN or SLACK_RELEASE_CHANNEL_ID", summary.read_text())
 
+    @unittest.skipUnless(shutil.which("bash"), "workflow scripts need optional shell tools")
     def test_nonstable_release_does_not_prepare_a_notification(self):
         job = workflow(".github/workflows/publish.yml")["jobs"]["notify-release"]
         classify = step(job, "Classify final release outcome")["run"]
@@ -179,6 +186,20 @@ class ReleaseWorkflowTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(output.exists())
             self.assertIn("no release notification was sent", summary.read_text())
+
+    @unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "workflow scripts need Bash and jq")
+    def test_thread_requires_confirmed_root_with_valid_timestamp(self):
+        guard = step(workflow(".github/workflows/publish.yml")["jobs"]["notify-release"],
+                     "Require release thread timestamp")["run"]
+        for ok, ts in (("true", "123.456"), ("false", "123.456"), ("true", ""), ("true", "invalid")):
+            with self.subTest(ok=ok, ts=ts), tempfile.TemporaryDirectory() as temp:
+                Path(temp, "release-detail.json").write_text('{"text":"checks"}')
+                result = subprocess.run(["bash", "-e", "-c", guard], env={**os.environ,
+                    "ROOT_OK": ok, "ROOT_TS": ts, "RUNNER_TEMP": temp,
+                    "GITHUB_STEP_SUMMARY": str(Path(temp, "summary"))},
+                    capture_output=True, text=True, check=False)
+                self.assertEqual(result.returncode == 0, ok == "true" and ts == "123.456")
+                self.assertEqual(Path(temp, "release-thread.json").exists(), result.returncode == 0)
 
 
 if __name__ == "__main__":

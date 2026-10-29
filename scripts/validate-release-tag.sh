@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [[ ! "${RELEASE_TAG}" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+  echo "Release tag ${RELEASE_TAG} must be a stable vX.Y.Z version." >&2
+  exit 1
+fi
+
 crate_version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')"
 expected_tag="v${crate_version}"
 

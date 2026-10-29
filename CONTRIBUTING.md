@@ -45,3 +45,7 @@ We look forward to your feedback on improving this project.
 
 If you have a question about rudder or have encountered problems using it,
 start by asking a question on [Slack][slack].
+
+## Published-package E2E acceptance
+
+Release completion also requires the exact public package to pass full E2E delivery and cleanup checks. See [release acceptance and validation-only retries](.github/RELEASE_E2E.md). Hosted acceptance remains pending the next normal release.

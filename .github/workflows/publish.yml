@@ -4,7 +4,6 @@ on:
   release:
     types:
       - published
-      - released
 
 permissions:
   contents: read
@@ -16,7 +15,7 @@ concurrency:
 jobs:
   publish:
     name: Publish crate
-    if: ${{ !github.event.release.prerelease }}
+    if: ${{ !github.event.release.prerelease && !github.event.release.draft && github.ref == format('refs/tags/{0}', github.event.release.tag_name) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: release
@@ -32,12 +31,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Validate release tag matches crate version
+      - name: Validate immutable release commit, tag, and stable crate version
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: ./scripts/validate-release-tag.sh
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          remote="$(git ls-remote origin "refs/tags/$RELEASE_TAG" "refs/tags/$RELEASE_TAG^{}")"
+          sha="$(awk -v ref="refs/tags/$RELEASE_TAG^{}" '$2 == ref { print $1 }' <<< "$remote")"
+          if [[ -z "$sha" ]]; then
+            sha="$(awk -v ref="refs/tags/$RELEASE_TAG" '$2 == ref { print $1 }' <<< "$remote")"
+          fi
+          test "$sha" = "$GITHUB_SHA"
+          ./scripts/validate-release-tag.sh
 
       - name: Authenticate with crates.io
         id: auth
@@ -47,3 +55,132 @@ jobs:
         run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  published-e2e:
+    name: Accept exact published package
+    needs: publish
+    permissions:
+      contents: read
+    uses: ./.github/workflows/published-sdk-e2e.yml
+    with:
+      package-version: ${{ github.event.release.tag_name }}
+    secrets:
+      RELEASE_PRIVATE_KEY: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
+  notify-release:
+    name: Report final release outcome
+    needs: [publish, published-e2e]
+    if: ${{ always() && github.run_attempt == '1' && github.event_name == 'release' && !github.event.release.prerelease && !github.event.release.draft && github.ref == format('refs/tags/{0}', github.event.release.tag_name) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Classify final release outcome
+        id: outcome
+        env:
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Tag $RELEASE_TAG is not a stable release version; no release notification was sent." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [[ "$PUBLISH_RESULT" == success && "$ACCEPTANCE_RESULT" == success ]]; then
+            headline="Rust SDK $RELEASE_TAG accepted"
+            verdict='Exact public crate, full E2E delivery, and cleanup: accepted'
+            summary='Published crate accepted: exact registry package, full E2E delivery, and cleanup passed.'
+          elif [[ "$PUBLISH_RESULT" == success ]]; then
+            headline="Rust SDK $RELEASE_TAG published; validation failed or incomplete"
+            verdict="Exact public crate/full E2E delivery/cleanup: $ACCEPTANCE_RESULT; no automatic unpublish"
+            summary="Crate published; validation failed or incomplete (acceptance: $ACCEPTANCE_RESULT). No automatic unpublish."
+          else
+            headline="Rust SDK $RELEASE_TAG publication failed or unconfirmed"
+            verdict="Publication job: $PUBLISH_RESULT; registry state unconfirmed; full E2E acceptance not established"
+            summary="Publication failed or unconfirmed (publish: $PUBLISH_RESULT; acceptance: $ACCEPTANCE_RESULT). Registry state is unconfirmed."
+          fi
+          echo "$summary" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "headline=$headline"
+            echo "verdict=$verdict"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Require existing Slack configuration
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
+        run: |
+          if [[ -z "$SLACK_BOT_TOKEN" || -z "$SLACK_CHANNEL_ID" ]]; then
+            echo 'Missing SLACK_BOT_TOKEN or SLACK_RELEASE_CHANNEL_ID; release acceptance was not announced.' | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+
+      - name: Prepare short release message and detail thread
+        env:
+          HEADLINE: ${{ steps.outcome.outputs.headline }}
+          VERDICT: ${{ steps.outcome.outputs.verdict }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          ACCEPTANCE_RESULT: ${{ needs.published-e2e.result }}
+          ACCEPTANCE_URL: ${{ needs.published-e2e.outputs.run-url }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          date_utc="$(date -u +%F)"
+          if [[ "$PUBLISH_RESULT" == success ]]; then
+            registry_label='Crate'
+          else
+            registry_label='Registry lookup (publication unconfirmed)'
+          fi
+          root="$HEADLINE · $date_utc"$'\n''CC: <!subteam^S0555JBV36D> <!subteam^S03SHJ20350>'
+          jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "$root" \
+            '{channel: $channel, text: $text, unfurl_links: false, unfurl_media: false}' \
+            > "$RUNNER_TEMP/release-root.json"
+          detail="*Release:* <https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG|$RELEASE_TAG>"$'\n'
+          detail+="*$registry_label:* <https://crates.io/crates/rudderanalytics/$version|rudderanalytics $version>"$'\n'
+          detail+="*Publication job:* $PUBLISH_RESULT"$'\n'
+          detail+="*Acceptance job:* $ACCEPTANCE_RESULT"$'\n'
+          detail+="*Result:* $VERDICT"$'\n'
+          detail+="*Run:* <https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|workflow and check results>"
+          if [[ -n "$ACCEPTANCE_URL" ]]; then
+            detail+=$'\n'"*Central validation:* <$ACCEPTANCE_URL|exact package E2E results>"
+          fi
+          jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "$detail" \
+            '{channel: $channel, text: $text, reply_broadcast: false, unfurl_links: false, unfurl_media: false}' \
+            > "$RUNNER_TEMP/release-detail.json"
+
+      - name: Post release status
+        id: root
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          errors: true
+          retries: rapid
+          payload-file-path: ${{ runner.temp }}/release-root.json
+
+      - name: Require release thread timestamp
+        env:
+          ROOT_TS: ${{ steps.root.outputs.ts }}
+          ROOT_OK: ${{ steps.root.outputs.ok }}
+        run: |
+          if [[ "$ROOT_OK" != true || ! "$ROOT_TS" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo 'Slack root message returned no thread timestamp.' | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+          jq --arg ts "$ROOT_TS" '.thread_ts = $ts' "$RUNNER_TEMP/release-detail.json" \
+            > "$RUNNER_TEMP/release-thread.json"
+
+      - name: Post release checks in thread
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          errors: true
+          retries: rapid
+          payload-file-path: ${{ runner.temp }}/release-thread.json

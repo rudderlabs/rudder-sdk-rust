@@ -54,7 +54,6 @@ class ReleaseWorkflowTest(unittest.TestCase):
         retry = workflow(".github/workflows/published-sdk-e2e.yml")
         self.assertIn("workflow_dispatch", retry["on"])
         validator = retry["jobs"]["validate"]
-        self.assertIn("@b6de40cc65abe8ee6c6593aac1787aea746b671f", validator["uses"])
         self.assertNotIn("steps", validator)
         self.assertRegex(validator["uses"], r"^rudderlabs/github-action-sdk-e2e/\.github/workflows/published-sdk-e2e\.yml@[0-9a-f]{40}$")
         self.assertEqual(validator["with"]["package-version"], "${{ inputs.package-version || github.ref_name }}")

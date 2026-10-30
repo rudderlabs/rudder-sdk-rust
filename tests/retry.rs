@@ -1,4 +1,4 @@
-use httpdate::fmt_http_date;
+use httpdate::{fmt_http_date, parse_http_date};
 use rudderanalytics::client::RudderAnalytics;
 use rudderanalytics::errors::Error as AnalyticsError;
 use rudderanalytics::message::{Message, Track};
@@ -414,29 +414,27 @@ fn honors_retry_after_delay_seconds() {
 
 #[test]
 fn honors_retry_after_http_date() {
-    let retry_at = SystemTime::now() + Duration::from_secs(2);
+    let retry_after = fmt_http_date(SystemTime::now() + Duration::from_secs(2));
+    // HTTP dates have whole-second precision. Assert the deadline sent on the
+    // wire, not a minimum duration measured after client/server setup.
+    let retry_at = parse_http_date(&retry_after).unwrap();
     let server = start_server(vec![
-        response_with_header(
-            429,
-            "Too Many Requests",
-            "Retry-After",
-            fmt_http_date(retry_at),
-        ),
+        response_with_header(429, "Too Many Requests", "Retry-After", retry_after),
         response(200, "OK"),
     ]);
     let analytics = analytics_with_retries(server.url.clone(), 3);
 
-    let start = Instant::now();
     let result = analytics.send(&track_message());
-    let elapsed = start.elapsed();
+    let completed_at = SystemTime::now();
     let request_count = server.wait();
 
     assert!(result.is_ok());
     assert_eq!(request_count, 2);
     assert!(
-        elapsed >= Duration::from_secs(1),
-        "expected HTTP-date Retry-After delay to be honored, elapsed {:?}",
-        elapsed
+        completed_at >= retry_at,
+        "expected HTTP-date Retry-After deadline {:?} to be honored, completed {:?}",
+        retry_at,
+        completed_at
     );
 }
 

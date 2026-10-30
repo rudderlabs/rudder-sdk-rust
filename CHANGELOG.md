@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.2](https://github.com/rudderlabs/rudder-sdk-rust/compare/v2.0.1...v2.0.2) (2026-10-30)
+
+
+### Miscellaneous
+
+* apply security-first dependabot policy ([#42](https://github.com/rudderlabs/rudder-sdk-rust/issues/42)) ([9192826](https://github.com/rudderlabs/rudder-sdk-rust/commit/9192826cccc0c60ab755a761d578180efad0979b))
+* **ci:** preserve rust published e2e run diagnostics ([#44](https://github.com/rudderlabs/rudder-sdk-rust/issues/44)) ([d073aa6](https://github.com/rudderlabs/rudder-sdk-rust/commit/d073aa6f4111a6fc7518956d265a9e83151d7b1f))
+* retain resolved cargo inventory and test feature variants ([#45](https://github.com/rudderlabs/rudder-sdk-rust/issues/45)) ([240edf2](https://github.com/rudderlabs/rudder-sdk-rust/commit/240edf260ab8a49b3b2bb6aa0ed1dce085b5e74f))
+* run full live e2e on release prs ([#47](https://github.com/rudderlabs/rudder-sdk-rust/issues/47)) ([16dca90](https://github.com/rudderlabs/rudder-sdk-rust/commit/16dca905b2e27319708d08d5e8f0c62b0cdb56de))
+* sdk-5436 update codeowners ([#40](https://github.com/rudderlabs/rudder-sdk-rust/issues/40)) ([22e5685](https://github.com/rudderlabs/rudder-sdk-rust/commit/22e5685b2790aa839a6b9e276b341b835ad9c1c4))
+* update readme with new branding images ([#39](https://github.com/rudderlabs/rudder-sdk-rust/issues/39)) ([7af2c1e](https://github.com/rudderlabs/rudder-sdk-rust/commit/7af2c1e7c24d37fb6a282c711e2c5247c2c07a04))
+* verify published e2e with per-run cleanup ([#46](https://github.com/rudderlabs/rudder-sdk-rust/issues/46)) ([935e9b9](https://github.com/rudderlabs/rudder-sdk-rust/commit/935e9b9c3f81f0b13368a2a0d65eb9eae1b7ce8c))
+
 ## [2.0.1](https://github.com/rudderlabs/rudder-sdk-rust/compare/v2.0.0...v2.0.1) (2026-07-22)
 
 

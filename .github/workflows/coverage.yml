@@ -1,0 +1,48 @@
+name: Coverage
+# Test coverage report. Separate from CI and not a required check, so a tooling problem does not fail CI.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Rust coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-llvm-cov
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install cargo-llvm-cov --version 0.9.1 --locked
+
+      # Measures the `default-tls,cli` test matrix variant; the `rustls-tls` variants are not included.
+      - name: Run tests with coverage
+        run: cargo llvm-cov --locked --no-default-features --features "default-tls,cli" --lcov --output-path lcov.info
+
+      - name: Report coverage
+        run: |
+          cargo llvm-cov report --summary-only
+          total="$(cargo llvm-cov report --summary-only | awk '/^TOTAL/ {print $10}')"
+          echo "Rust unit and integration test line coverage: $total" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-report
+          path: lcov.info

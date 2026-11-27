@@ -47,10 +47,17 @@ jobs:
         with:
           name: coverage-report
           path: lcov.info
+          if-no-files-found: error
 
-      # Fork PRs do not receive SONAR_TOKEN. This workflow is advisory.
+      # Fork PRs do not receive SONAR_TOKEN. Keep scan failures advisory.
       - name: SonarQube Scan
+        id: sonar_scan
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Report SonarCloud scan failure
+        if: steps.sonar_scan.outcome == 'failure'
+        run: echo "::warning::SonarCloud scan failed. The LCOV artifact is available. See the scan step for details."
